@@ -1,0 +1,44 @@
+# Django Core
+Django>=5.1,<6.0
+djangorestframework>=3.15,<4.0
+django-cors-headers>=4.4,<5.0
+django-filter>=24.0,<25.0
+
+# Database
+psycopg2-binary>=2.9,<3.0
+
+# Environment
+python-dotenv>=1.0,<2.0
+
+# Authentication
+djangorestframework-simplejwt>=5.3,<6.0
+
+# API Documentation
+drf-spectacular>=0.27,<1.0
+
+# Async Tasks
+celery>=5.4,<6.0
+redis>=5.0,<6.0
+
+# XML Processing (XRechnung)
+lxml>=5.3,<6.0
+
+# PDF Generation (ZUGFeRD)
+reportlab>=4.2,<5.0
+pypdf>=4.0,<5.0
+Pillow>=12.0,<13.0
+
+# ZUGFeRD / Factur-X
+factur-x>=3.0,<4.0
+
+# Data Validation
+pydantic>=2.7,<3.0
+
+# Date/Time
+python-dateutil>=2.9,<3.0
+
+# Encryption (GoBD Archive)
+cryptography>=43.0,<44.0
+
+# CSV Export (DATEV)
+pandas>=2.2,<3.0
