@@ -20,16 +20,14 @@ drf-spectacular>=0.27,<1.0
 celery>=5.4,<6.0
 redis>=5.0,<6.0
 
-# XML Processing (XRechnung)
-lxml>=5.3,<6.0
-
-# PDF Generation (ZUGFeRD)
+# PDF Generation
 reportlab>=4.2,<5.0
 pypdf>=4.0,<5.0
 Pillow>=12.0,<13.0
 
-# ZUGFeRD / Factur-X
-factur-x>=3.0,<4.0
+# XML Processing - später via Docker
+# lxml>=5.3,<6.0
+# factur-x>=3.0,<4.0
 
 # Data Validation
 pydantic>=2.7,<3.0
