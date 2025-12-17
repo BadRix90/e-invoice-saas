@@ -84,6 +84,27 @@ export interface Invoice {
   updated_at: string;
 }
 
+export interface DashboardStats {
+  total_invoices: number;
+  by_status: {
+    draft: number;
+    open: number;
+    paid: number;
+    cancelled: number;
+  };
+  total_revenue: string;
+  open_amount: string;
+  overdue: {
+    count: number;
+    amount: string;
+  };
+  monthly_revenue: {
+    month: string;
+    total: string;
+    count: number;
+  }[];
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -236,6 +257,10 @@ export class ApiService {
     return this.http.get(`${this.API_URL}/invoices/export_datev/${params}`, {
       responseType: 'blob'
     });
+  }
+
+  getDashboardStats(): Observable<DashboardStats> {
+    return this.http.get<DashboardStats>(`${this.API_URL}/invoices/dashboard_stats/`);
   }
 
   // ============ INVOICE ITEMS ============

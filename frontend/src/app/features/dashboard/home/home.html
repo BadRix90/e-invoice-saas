@@ -1,37 +1,112 @@
 <div class="home-container">
-  <h1>Willkommen zurück!</h1>
+  <h1>Dashboard</h1>
 
-  <div class="stats-grid">
-    @for (stat of stats(); track stat.title) {
-      <mat-card class="stat-card" [routerLink]="stat.route">
+  @if (loading()) {
+    <div class="loading">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  } @else if (stats()) {
+    <!-- Statistik-Karten -->
+    <div class="stats-grid">
+      <mat-card class="stat-card" routerLink="/dashboard/invoices">
         <mat-card-content>
-          <div class="stat-icon" [style.background]="stat.color">
-            <mat-icon>{{ stat.icon }}</mat-icon>
+          <div class="stat-icon blue">
+            <mat-icon>receipt_long</mat-icon>
           </div>
           <div class="stat-info">
-            <span class="stat-value">{{ stat.value }}</span>
-            <span class="stat-title">{{ stat.title }}</span>
+            <span class="stat-value">{{ stats()!.total_invoices }}</span>
+            <span class="stat-title">Rechnungen</span>
           </div>
         </mat-card-content>
       </mat-card>
-    }
-  </div>
 
-  <div class="actions-section">
-    <h2>Schnellaktionen</h2>
-    <div class="actions-grid">
-      <button mat-raised-button color="primary" routerLink="/dashboard/invoices/new">
-        <mat-icon>add</mat-icon>
-        Neue Rechnung
-      </button>
-      <button mat-raised-button routerLink="/dashboard/customers/new">
-        <mat-icon>person_add</mat-icon>
-        Neuer Kunde
-      </button>
-      <button mat-raised-button routerLink="/dashboard/products/new">
-        <mat-icon>add_box</mat-icon>
-        Neues Produkt
-      </button>
+      <mat-card class="stat-card" routerLink="/dashboard/invoices">
+        <mat-card-content>
+          <div class="stat-icon orange">
+            <mat-icon>pending</mat-icon>
+          </div>
+          <div class="stat-info">
+            <span class="stat-value">{{ stats()!.by_status.open }}</span>
+            <span class="stat-title">Offen</span>
+            <span class="stat-sub">{{ stats()!.open_amount | currency:'EUR':'symbol':'1.2-2':'de' }}</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card class="stat-card success" routerLink="/dashboard/invoices">
+        <mat-card-content>
+          <div class="stat-icon green">
+            <mat-icon>check_circle</mat-icon>
+          </div>
+          <div class="stat-info">
+            <span class="stat-value">{{ stats()!.by_status.paid }}</span>
+            <span class="stat-title">Bezahlt</span>
+            <span class="stat-sub">{{ stats()!.total_revenue | currency:'EUR':'symbol':'1.2-2':'de' }}</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+
+      @if (stats()!.overdue.count > 0) {
+        <mat-card class="stat-card warning" routerLink="/dashboard/invoices">
+          <mat-card-content>
+            <div class="stat-icon red">
+              <mat-icon>warning</mat-icon>
+            </div>
+            <div class="stat-info">
+              <span class="stat-value">{{ stats()!.overdue.count }}</span>
+              <span class="stat-title">Überfällig</span>
+              <span class="stat-sub">{{ stats()!.overdue.amount | currency:'EUR':'symbol':'1.2-2':'de' }}</span>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      } @else {
+        <mat-card class="stat-card">
+          <mat-card-content>
+            <div class="stat-icon grey">
+              <mat-icon>edit_note</mat-icon>
+            </div>
+            <div class="stat-info">
+              <span class="stat-value">{{ stats()!.by_status.draft }}</span>
+              <span class="stat-title">Entwürfe</span>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      }
     </div>
-  </div>
+
+    <!-- Schnellaktionen -->
+    <div class="actions-section">
+      <h2>Schnellaktionen</h2>
+      <div class="actions-grid">
+        <button mat-raised-button color="primary" routerLink="/dashboard/invoices/new">
+          <mat-icon>add</mat-icon>
+          Neue Rechnung
+        </button>
+        <button mat-raised-button routerLink="/dashboard/customers/new">
+          <mat-icon>person_add</mat-icon>
+          Neuer Kunde
+        </button>
+        <button mat-raised-button routerLink="/dashboard/products/new">
+          <mat-icon>add_box</mat-icon>
+          Neues Produkt
+        </button>
+      </div>
+    </div>
+
+    <!-- Monatsumsatz -->
+    @if (stats()!.monthly_revenue.length > 0) {
+      <div class="revenue-section">
+        <h2>Umsatz (bezahlt)</h2>
+        <div class="revenue-bars">
+          @for (month of stats()!.monthly_revenue; track month.month) {
+            <div class="revenue-bar">
+              <div class="bar-label">{{ month.month }}</div>
+              <div class="bar-value">{{ month.total | currency:'EUR':'symbol':'1.0-0':'de' }}</div>
+              <div class="bar-count">{{ month.count }} Rechnung(en)</div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  }
 </div>

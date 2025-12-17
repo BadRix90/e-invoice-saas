@@ -220,6 +220,72 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         response['Content-Disposition'] = f'attachment; filename="datev_export_{date.today()}.csv"'
         return response
 
+    @action(detail=False, methods=['get'])
+    def dashboard_stats(self, request):
+        """Dashboard Statistiken"""
+        from django.db.models import Sum, Count
+        from django.db.models.functions import TruncMonth
+        from decimal import Decimal
+
+        invoices = self.get_queryset()
+
+        # Basis-Statistiken
+        total_invoices = invoices.count()
+        draft_count = invoices.filter(status='draft').count()
+        open_count = invoices.filter(status__in=['final', 'sent']).count()
+        paid_count = invoices.filter(status='paid').count()
+        cancelled_count = invoices.filter(status='cancelled').count()
+
+        # Beträge
+        total_revenue = invoices.filter(status='paid').aggregate(
+            total=Sum('total'))['total'] or Decimal('0.00')
+        open_amount = invoices.filter(status__in=['final', 'sent']).aggregate(
+            total=Sum('total'))['total'] or Decimal('0.00')
+
+        # Überfällige Rechnungen
+        from django.utils import timezone
+        today = timezone.now().date()
+        overdue = invoices.filter(
+            status__in=['final', 'sent'],
+            due_date__lt=today
+        )
+        overdue_count = overdue.count()
+        overdue_amount = overdue.aggregate(total=Sum('total'))['total'] or Decimal('0.00')
+
+        # Umsatz pro Monat (letzte 12 Monate)
+        monthly_revenue = invoices.filter(
+            status='paid'
+        ).annotate(
+            month=TruncMonth('invoice_date')
+        ).values('month').annotate(
+            total=Sum('total'),
+            count=Count('id')
+        ).order_by('month')
+
+        return Response({
+            'total_invoices': total_invoices,
+            'by_status': {
+                'draft': draft_count,
+                'open': open_count,
+                'paid': paid_count,
+                'cancelled': cancelled_count,
+            },
+            'total_revenue': str(total_revenue),
+            'open_amount': str(open_amount),
+            'overdue': {
+                'count': overdue_count,
+                'amount': str(overdue_amount),
+            },
+            'monthly_revenue': [
+                {
+                    'month': item['month'].strftime('%Y-%m') if item['month'] else None,
+                    'total': str(item['total']),
+                    'count': item['count']
+                }
+                for item in monthly_revenue
+            ],
+        })
+
 
 class InvoiceItemViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
