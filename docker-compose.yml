@@ -3,19 +3,51 @@ services:
   db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: einvoice
-      POSTGRES_USER: einvoice
-      POSTGRES_PASSWORD: einvoice_secret
+      POSTGRES_DB: ${DB_NAME:-einvoice}
+      POSTGRES_USER: ${DB_USER:-einvoice}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-einvoice_secret}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-einvoice}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-  # Kosit Validator (XRechnung 3.0.2 Validierung)
+  # Django Backend
+  backend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+    volumes:
+      - media_data:/app/media
+      - static_data:/app/staticfiles
+    environment:
+      DEBUG: "False"
+      SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
+      DATABASE_URL: postgres://${DB_USER:-einvoice}:${DB_PASSWORD:-einvoice_secret}@db:5432/${DB_NAME:-einvoice}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-localhost,127.0.0.1}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  # Angular Frontend + Nginx
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+  # Kosit Validator (XRechnung 3.0.2)
   validator:
     image: flx235/xr-validator-service:302
     ports:
-      - "8081:8081"
+      - "8081:8080"
 
   # Redis (für Celery später)
   redis:
@@ -25,3 +57,5 @@ services:
 
 volumes:
   postgres_data:
+  media_data:
+  static_data:
