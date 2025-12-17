@@ -230,6 +230,13 @@ export class ApiService {
     return this.http.post<Invoice>(`${this.API_URL}/invoices/${id}/cancel/`, {});
   }
 
+  sendInvoiceEmail(id: number, email?: string): Observable<{ success: boolean; message: string; invoice: Invoice }> {
+    return this.http.post<{ success: boolean; message: string; invoice: Invoice }>(
+      `${this.API_URL}/invoices/${id}/send_email/`,
+      email ? { email } : {}
+    );
+  }
+
   duplicateInvoice(id: number): Observable<Invoice> {
     return this.http.post<Invoice>(`${this.API_URL}/invoices/${id}/duplicate/`, {});
   }

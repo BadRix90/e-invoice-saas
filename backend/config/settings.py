@@ -137,3 +137,16 @@ SPECTACULAR_SETTINGS = {
 
 # Debug Toolbar
 INTERNAL_IPS = ['127.0.0.1']
+
+# Email Configuration
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # Oder dein SMTP-Server
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = ''  # Später aus .env laden
+EMAIL_HOST_PASSWORD = ''  # Später aus .env laden
+DEFAULT_FROM_EMAIL = 'rechnung@example.com'
+
+# Für Entwicklung: Emails in Console ausgeben
+if DEBUG:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

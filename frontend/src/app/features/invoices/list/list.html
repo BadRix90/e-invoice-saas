@@ -84,8 +84,18 @@
                 <mat-icon>send</mat-icon>
                 Als versendet markieren
               </button>
+              <button mat-menu-item (click)="sendEmail(invoice.id)">
+                <mat-icon>email</mat-icon>
+                Per E-Mail versenden
+              </button>
               }
               @if (invoice.status === 'sent') {
+              <button mat-menu-item (click)="sendEmail(invoice.id)">
+                <mat-icon>email</mat-icon>
+                Erneut per E-Mail senden
+              </button>
+              }
+              @if (invoice.status === 'sent' || invoice.status === 'final') {
               <button mat-menu-item (click)="markPaid(invoice.id)">
                 <mat-icon>paid</mat-icon>
                 Als bezahlt markieren

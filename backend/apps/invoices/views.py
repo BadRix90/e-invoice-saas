@@ -8,6 +8,7 @@ from .serializers import InvoiceSerializer, InvoiceItemSerializer, InvoiceItemCr
 from .xrechnung import generate_xrechnung
 from .validator import validate_xrechnung, check_validator_health
 from .zugferd import generate_zugferd_pdf
+from .email import send_invoice_email
 from datetime import date
 from .datev import generate_datev_simple
 
@@ -58,6 +59,45 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         invoice.status = 'sent'
         invoice.save()
         return Response(InvoiceSerializer(invoice).data)
+    
+    @action(detail=True, methods=['post'])
+    def send_email(self, request, pk=None):
+        """Rechnung per E-Mail versenden"""
+        invoice = self.get_object()
+        
+        if invoice.status == 'draft':
+            return Response(
+                {'error': 'Entwürfe können nicht versendet werden.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Optional: andere E-Mail-Adresse
+        recipient = request.data.get('email', invoice.customer.email)
+        
+        if not recipient:
+            return Response(
+                {'error': 'Keine E-Mail-Adresse vorhanden.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            send_invoice_email(invoice, recipient)
+            
+            # Status auf "versendet" setzen
+            if invoice.status == 'final':
+                invoice.status = 'sent'
+                invoice.save()
+            
+            return Response({
+                'success': True,
+                'message': f'Rechnung an {recipient} versendet.',
+                'invoice': InvoiceSerializer(invoice).data
+            })
+        except Exception as e:
+            return Response(
+                {'error': f'Fehler beim Versenden: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
 
     @action(detail=True, methods=['post'])
     def mark_paid(self, request, pk=None):
@@ -250,7 +290,8 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             due_date__lt=today
         )
         overdue_count = overdue.count()
-        overdue_amount = overdue.aggregate(total=Sum('total'))['total'] or Decimal('0.00')
+        overdue_amount = overdue.aggregate(total=Sum('total'))[
+            'total'] or Decimal('0.00')
 
         # Umsatz pro Monat (letzte 12 Monate)
         monthly_revenue = invoices.filter(
