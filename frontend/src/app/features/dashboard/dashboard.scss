@@ -9,19 +9,16 @@
 }
 
 .logo {
+  padding: 16px;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 1rem;
-  font-size: 1.5rem;
-  font-weight: 500;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  justify-content: center;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 
-  mat-icon {
-    font-size: 2rem;
-    width: 2rem;
-    height: 2rem;
-    color: #1976d2;
+  .logo-image {
+    max-width: 160px;
+    max-height: 48px;
+    object-fit: contain;
   }
 }
 
