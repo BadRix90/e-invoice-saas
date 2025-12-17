@@ -39,7 +39,7 @@ export class ListComponent implements OnInit {
   constructor(
     private apiService: ApiService,
     private snackBar: MatSnackBar
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadInvoices();
@@ -114,6 +114,78 @@ export class ListComponent implements OnInit {
   }
 
   downloadXml(id: number): void {
-    this.snackBar.open('XML-Download kommt bald', 'OK', { duration: 2000 });
+    const invoice = this.invoices().find(i => i.id === id);
+
+    if (invoice?.status === 'draft') {
+      this.snackBar.open('Bitte Rechnung erst finalisieren', 'OK', { duration: 3000 });
+      return;
+    }
+
+    this.apiService.downloadInvoiceXml(id).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${invoice?.invoice_number || 'rechnung'}.xml`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        this.snackBar.open('XML heruntergeladen', 'OK', { duration: 2000 });
+      },
+      error: (err) => {
+        console.error('Download error:', err);
+        this.snackBar.open('Fehler beim Download', 'OK', { duration: 3000 });
+      }
+    });
+  }
+
+  finalizeInvoice(id: number): void {
+    this.apiService.finalizeInvoice(id).subscribe({
+      next: (updated) => {
+        this.invoices.update(list => list.map(i => i.id === id ? updated : i));
+        this.snackBar.open('Rechnung finalisiert', 'OK', { duration: 2000 });
+      },
+      error: (err) => {
+        const msg = err.error?.error || 'Fehler beim Finalisieren';
+        this.snackBar.open(msg, 'OK', { duration: 3000 });
+      }
+    });
+  }
+
+  markSent(id: number): void {
+    this.apiService.markInvoiceSent(id).subscribe({
+      next: (updated) => {
+        this.invoices.update(list => list.map(i => i.id === id ? updated : i));
+        this.snackBar.open('Rechnung als versendet markiert', 'OK', { duration: 2000 });
+      },
+      error: () => {
+        this.snackBar.open('Fehler', 'OK', { duration: 3000 });
+      }
+    });
+  }
+
+  markPaid(id: number): void {
+    this.apiService.markInvoicePaid(id).subscribe({
+      next: (updated) => {
+        this.invoices.update(list => list.map(i => i.id === id ? updated : i));
+        this.snackBar.open('Rechnung als bezahlt markiert', 'OK', { duration: 2000 });
+      },
+      error: () => {
+        this.snackBar.open('Fehler', 'OK', { duration: 3000 });
+      }
+    });
+  }
+
+  cancelInvoice(id: number): void {
+    if (confirm('Rechnung wirklich stornieren?')) {
+      this.apiService.cancelInvoice(id).subscribe({
+        next: (updated) => {
+          this.invoices.update(list => list.map(i => i.id === id ? updated : i));
+          this.snackBar.open('Rechnung storniert', 'OK', { duration: 2000 });
+        },
+        error: () => {
+          this.snackBar.open('Fehler beim Stornieren', 'OK', { duration: 3000 });
+        }
+      });
+    }
   }
 }

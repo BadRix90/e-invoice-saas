@@ -114,17 +114,30 @@ class InvoiceItemCreateSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id']
 
-    def create(self, validated_data):
-        product = validated_data.get('product')
-        if product:
-            if not validated_data.get('sku'):
-                validated_data['sku'] = product.sku
-            if not validated_data.get('description'):
-                validated_data['description'] = product.name
-            if not validated_data.get('unit'):
-                validated_data['unit'] = product.unit
-            if not validated_data.get('unit_price'):
-                validated_data['unit_price'] = product.unit_price
-            if not validated_data.get('vat_rate'):
-                validated_data['vat_rate'] = product.vat_rate
-        return super().create(validated_data)
+        def create(self, validated_data):
+            tenant = self.context['request'].user.tenant
+            user = self.context['request'].user
+
+            # Auto-generate invoice number: RE-YYYY-NNNN
+            from django.utils import timezone
+            year = timezone.now().year
+            last_invoice = Invoice.objects.filter(
+                tenant=tenant,
+                invoice_number__startswith=f'RE-{year}'
+            ).order_by('-invoice_number').first()
+
+            if last_invoice:
+                try:
+                    last_num = int(last_invoice.invoice_number.split('-')[-1])
+                    new_num = f"RE-{year}-{last_num + 1:04d}"
+                except ValueError:
+                    new_num = f"RE-{year}-0001"
+            else:
+                new_num = f"RE-{year}-0001"
+
+            validated_data['invoice_number'] = new_num
+            validated_data['tenant'] = tenant
+            validated_data['created_by'] = user
+            
+            invoice = super().create(validated_data)
+            return invoice

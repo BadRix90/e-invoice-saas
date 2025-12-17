@@ -90,7 +90,7 @@ export interface Invoice {
 export class ApiService {
   private readonly API_URL = 'http://localhost:8000/api';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   // ============ CUSTOMERS ============
   getCustomers(params?: { search?: string }): Observable<Customer[]> {
@@ -192,6 +192,12 @@ export class ApiService {
 
   duplicateInvoice(id: number): Observable<Invoice> {
     return this.http.post<Invoice>(`${this.API_URL}/invoices/${id}/duplicate/`, {});
+  }
+
+  downloadInvoiceXml(id: number): Observable<Blob> {
+    return this.http.get(`${this.API_URL}/invoices/${id}/download_xml/`, {
+      responseType: 'blob'
+    });
   }
 
   // ============ INVOICE ITEMS ============

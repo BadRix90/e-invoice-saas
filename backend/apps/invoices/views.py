@@ -1,9 +1,11 @@
+from django.http import HttpResponse
 from rest_framework import viewsets, permissions, filters, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Invoice, InvoiceItem
 from .serializers import InvoiceSerializer, InvoiceItemSerializer, InvoiceItemCreateSerializer
+from .xrechnung import generate_xrechnung
 
 
 class InvoiceViewSet(viewsets.ModelViewSet):
@@ -32,6 +34,9 @@ class InvoiceViewSet(viewsets.ModelViewSet):
                 {'error': 'Rechnung muss mindestens eine Position haben.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
+        
+        # Summen berechnen
+        invoice.calculate_totals()
         invoice.status = 'final'
         invoice.save()
         return Response(InvoiceSerializer(invoice).data)
@@ -78,14 +83,20 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def duplicate(self, request, pk=None):
         """Rechnung duplizieren (als neuen Entwurf)"""
+        from django.utils import timezone
+        
         original = self.get_object()
+        today = timezone.now().date()
         
         # Neue Rechnung erstellen
         new_invoice = Invoice.objects.create(
             tenant=original.tenant,
             customer=original.customer,
+            invoice_date=today,
+            due_date=today + timezone.timedelta(days=original.customer.payment_terms_days),
             status='draft',
             format=original.format,
+            leitweg_id=original.leitweg_id,
             payment_terms=original.payment_terms,
             notes=original.notes,
             created_by=request.user,
@@ -96,6 +107,8 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             InvoiceItem.objects.create(
                 invoice=new_invoice,
                 product=item.product,
+                position=item.position,
+                sku=item.sku,
                 description=item.description,
                 quantity=item.quantity,
                 unit=item.unit,
@@ -103,10 +116,38 @@ class InvoiceViewSet(viewsets.ModelViewSet):
                 vat_rate=item.vat_rate,
             )
         
+        # Summen berechnen
+        new_invoice.calculate_totals()
+        new_invoice.save()
+        
         return Response(
             InvoiceSerializer(new_invoice).data,
             status=status.HTTP_201_CREATED
         )
+
+    @action(detail=True, methods=['get'])
+    def download_xml(self, request, pk=None):
+        """XRechnung XML herunterladen"""
+        invoice = self.get_object()
+        
+        if invoice.status == 'draft':
+            return Response(
+                {'error': 'Entwürfe können nicht exportiert werden. Bitte zuerst finalisieren.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Summen sicherstellen
+        if invoice.total == 0:
+            invoice.calculate_totals()
+            invoice.save()
+        
+        # XML generieren
+        xml_content = generate_xrechnung(invoice)
+        
+        # Response mit Download
+        response = HttpResponse(xml_content, content_type='application/xml; charset=utf-8')
+        response['Content-Disposition'] = f'attachment; filename="{invoice.invoice_number}.xml"'
+        return response
 
 
 class InvoiceItemViewSet(viewsets.ModelViewSet):
@@ -123,3 +164,22 @@ class InvoiceItemViewSet(viewsets.ModelViewSet):
         return InvoiceItem.objects.filter(
             invoice__tenant=self.request.user.tenant
         )
+
+    def perform_create(self, serializer):
+        """Nach dem Erstellen: Rechnungssummen aktualisieren"""
+        item = serializer.save()
+        item.invoice.calculate_totals()
+        item.invoice.save()
+
+    def perform_update(self, serializer):
+        """Nach dem Update: Rechnungssummen aktualisieren"""
+        item = serializer.save()
+        item.invoice.calculate_totals()
+        item.invoice.save()
+
+    def perform_destroy(self, instance):
+        """Nach dem Löschen: Rechnungssummen aktualisieren"""
+        invoice = instance.invoice
+        instance.delete()
+        invoice.calculate_totals()
+        invoice.save()
