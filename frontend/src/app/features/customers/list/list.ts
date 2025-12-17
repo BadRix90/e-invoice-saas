@@ -7,15 +7,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
-
-export interface Customer {
-  id: number;
-  customer_number: string;
-  company_name: string;
-  city: string;
-  email: string;
-  leitweg_id: string;
-}
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ApiService, Customer } from '../../../core/services/api';
 
 @Component({
   selector: 'app-customer-list',
@@ -28,29 +21,58 @@ export interface Customer {
     MatButtonModule,
     MatIconModule,
     MatInputModule,
-    MatFormFieldModule
+    MatFormFieldModule,
+    MatSnackBarModule
   ],
   templateUrl: './list.html',
   styleUrl: './list.scss'
 })
 export class ListComponent implements OnInit {
   customers = signal<Customer[]>([]);
-  displayedColumns = ['customer_number', 'company_name', 'city', 'email', 'actions'];
+  isLoading = signal(true);
+  displayedColumns = ['customer_number', 'display_name', 'city', 'email', 'actions'];
+
+  constructor(
+    private apiService: ApiService,
+    private snackBar: MatSnackBar
+  ) {}
 
   ngOnInit(): void {
     this.loadCustomers();
   }
 
-  private loadCustomers(): void {
-    // TODO: API call
-    this.customers.set([
-      { id: 1, customer_number: 'K-001', company_name: 'Muster GmbH', city: 'Berlin', email: 'info@muster.de', leitweg_id: '' },
-      { id: 2, customer_number: 'K-002', company_name: 'Beispiel AG', city: 'München', email: 'kontakt@beispiel.de', leitweg_id: '991-12345-67' }
-    ]);
+  loadCustomers(): void {
+    this.isLoading.set(true);
+    this.apiService.getCustomers().subscribe({
+      next: (data) => {
+        this.customers.set(data);
+        this.isLoading.set(false);
+      },
+      error: (err) => {
+        this.snackBar.open('Fehler beim Laden der Kunden', 'OK', { duration: 3000 });
+        this.isLoading.set(false);
+      }
+    });
+  }
+
+  onSearch(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.apiService.getCustomers({ search: value }).subscribe({
+      next: (data) => this.customers.set(data)
+    });
   }
 
   deleteCustomer(id: number): void {
-    // TODO: API call + confirm dialog
-    this.customers.update(list => list.filter(c => c.id !== id));
+    if (confirm('Kunde wirklich löschen?')) {
+      this.apiService.deleteCustomer(id).subscribe({
+        next: () => {
+          this.customers.update(list => list.filter(c => c.id !== id));
+          this.snackBar.open('Kunde gelöscht', 'OK', { duration: 2000 });
+        },
+        error: () => {
+          this.snackBar.open('Fehler beim Löschen', 'OK', { duration: 3000 });
+        }
+      });
+    }
   }
 }

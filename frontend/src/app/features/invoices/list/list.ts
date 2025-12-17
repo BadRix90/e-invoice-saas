@@ -9,16 +9,8 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatMenuModule } from '@angular/material/menu';
-
-export interface Invoice {
-  id: number;
-  invoice_number: string;
-  customer_name: string;
-  invoice_date: string;
-  total: number;
-  status: string;
-  format: string;
-}
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ApiService, Invoice } from '../../../core/services/api';
 
 @Component({
   selector: 'app-invoice-list',
@@ -33,38 +25,49 @@ export interface Invoice {
     MatInputModule,
     MatFormFieldModule,
     MatChipsModule,
-    MatMenuModule
+    MatMenuModule,
+    MatSnackBarModule
   ],
   templateUrl: './list.html',
   styleUrl: './list.scss'
 })
 export class ListComponent implements OnInit {
   invoices = signal<Invoice[]>([]);
+  isLoading = signal(true);
   displayedColumns = ['invoice_number', 'customer_name', 'invoice_date', 'total', 'status', 'format', 'actions'];
 
-  statusLabels: Record<string, string> = {
-    draft: 'Entwurf',
-    final: 'Final',
-    sent: 'Versendet',
-    paid: 'Bezahlt',
-    cancelled: 'Storniert'
-  };
+  constructor(
+    private apiService: ApiService,
+    private snackBar: MatSnackBar
+  ) {}
 
   ngOnInit(): void {
     this.loadInvoices();
   }
 
-  private loadInvoices(): void {
-    // TODO: API call
-    this.invoices.set([
-      { id: 1, invoice_number: 'RE-2025-001', customer_name: 'Muster GmbH', invoice_date: '2025-01-15', total: 1428.00, status: 'paid', format: 'zugferd' },
-      { id: 2, invoice_number: 'RE-2025-002', customer_name: 'Beispiel AG', invoice_date: '2025-01-18', total: 594.00, status: 'sent', format: 'xrechnung' },
-      { id: 3, invoice_number: 'RE-2025-003', customer_name: 'Test KG', invoice_date: '2025-01-20', total: 238.00, status: 'draft', format: 'zugferd' }
-    ]);
+  loadInvoices(): void {
+    this.isLoading.set(true);
+    this.apiService.getInvoices().subscribe({
+      next: (data) => {
+        this.invoices.set(data);
+        this.isLoading.set(false);
+      },
+      error: () => {
+        this.snackBar.open('Fehler beim Laden der Rechnungen', 'OK', { duration: 3000 });
+        this.isLoading.set(false);
+      }
+    });
   }
 
-  formatPrice(price: number): string {
-    return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(price);
+  onSearch(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.apiService.getInvoices({ search: value }).subscribe({
+      next: (data) => this.invoices.set(data)
+    });
+  }
+
+  formatPrice(price: string): string {
+    return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(parseFloat(price));
   }
 
   formatDate(date: string): string {
@@ -75,8 +78,39 @@ export class ListComponent implements OnInit {
     return `status-${status}`;
   }
 
-  downloadInvoice(id: number, type: 'pdf' | 'xml'): void {
-    // TODO: API call
-    console.log(`Download ${type} for invoice ${id}`);
+  deleteInvoice(id: number): void {
+    if (confirm('Rechnung wirklich löschen?')) {
+      this.apiService.deleteInvoice(id).subscribe({
+        next: () => {
+          this.invoices.update(list => list.filter(i => i.id !== id));
+          this.snackBar.open('Rechnung gelöscht', 'OK', { duration: 2000 });
+        },
+        error: () => {
+          this.snackBar.open('Fehler beim Löschen', 'OK', { duration: 3000 });
+        }
+      });
+    }
+  }
+
+  duplicateInvoice(id: number): void {
+    this.apiService.duplicateInvoice(id).subscribe({
+      next: (newInvoice) => {
+        this.invoices.update(list => [newInvoice, ...list]);
+        this.snackBar.open('Rechnung dupliziert', 'OK', { duration: 2000 });
+      },
+      error: () => {
+        this.snackBar.open('Fehler beim Duplizieren', 'OK', { duration: 3000 });
+      }
+    });
+  }
+
+  downloadPdf(id: number): void {
+    // TODO: Implementieren wenn PDF-Generierung fertig
+    this.snackBar.open('PDF-Download kommt bald', 'OK', { duration: 2000 });
+  }
+
+  downloadXml(id: number): void {
+    // TODO: Implementieren wenn XML-Generierung fertig
+    this.snackBar.open('XML-Download kommt bald', 'OK', { duration: 2000 });
   }
 }

@@ -8,16 +8,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatChipsModule } from '@angular/material/chips';
-
-export interface Product {
-  id: number;
-  sku: string;
-  name: string;
-  unit_price: number;
-  unit: string;
-  vat_rate: number;
-  is_active: boolean;
-}
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { ApiService, Product } from '../../../core/services/api';
 
 @Component({
   selector: 'app-product-list',
@@ -31,33 +23,62 @@ export interface Product {
     MatIconModule,
     MatInputModule,
     MatFormFieldModule,
-    MatChipsModule
+    MatChipsModule,
+    MatSnackBarModule
   ],
   templateUrl: './list.html',
   styleUrl: './list.scss'
 })
 export class ListComponent implements OnInit {
   products = signal<Product[]>([]);
+  isLoading = signal(true);
   displayedColumns = ['sku', 'name', 'unit_price', 'vat_rate', 'status', 'actions'];
+
+  constructor(
+    private apiService: ApiService,
+    private snackBar: MatSnackBar
+  ) {}
 
   ngOnInit(): void {
     this.loadProducts();
   }
 
-  private loadProducts(): void {
-    // TODO: API call
-    this.products.set([
-      { id: 1, sku: 'ART-001', name: 'Beratungsstunde', unit_price: 120.00, unit: 'HUR', vat_rate: 19, is_active: true },
-      { id: 2, sku: 'ART-002', name: 'Softwarelizenz', unit_price: 499.00, unit: 'H87', vat_rate: 19, is_active: true },
-      { id: 3, sku: 'ART-003', name: 'Support-Paket', unit_price: 89.00, unit: 'MON', vat_rate: 19, is_active: false }
-    ]);
+  loadProducts(): void {
+    this.isLoading.set(true);
+    this.apiService.getProducts().subscribe({
+      next: (data) => {
+        this.products.set(data);
+        this.isLoading.set(false);
+      },
+      error: () => {
+        this.snackBar.open('Fehler beim Laden der Produkte', 'OK', { duration: 3000 });
+        this.isLoading.set(false);
+      }
+    });
+  }
+
+  onSearch(event: Event): void {
+    const value = (event.target as HTMLInputElement).value;
+    this.apiService.getProducts({ search: value }).subscribe({
+      next: (data) => this.products.set(data)
+    });
   }
 
   deleteProduct(id: number): void {
-    this.products.update(list => list.filter(p => p.id !== id));
+    if (confirm('Produkt wirklich löschen?')) {
+      this.apiService.deleteProduct(id).subscribe({
+        next: () => {
+          this.products.update(list => list.filter(p => p.id !== id));
+          this.snackBar.open('Produkt gelöscht', 'OK', { duration: 2000 });
+        },
+        error: () => {
+          this.snackBar.open('Fehler beim Löschen', 'OK', { duration: 3000 });
+        }
+      });
+    }
   }
 
-  formatPrice(price: number): string {
-    return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(price);
+  formatPrice(price: string): string {
+    return new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(parseFloat(price));
   }
 }
