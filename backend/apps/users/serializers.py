@@ -3,6 +3,8 @@ from .models import Tenant
 
 
 class TenantSerializer(serializers.ModelSerializer):
+    logo = serializers.SerializerMethodField()
+
     class Meta:
         model = Tenant
         fields = [
@@ -14,3 +16,11 @@ class TenantSerializer(serializers.ModelSerializer):
             'logo',
         ]
         read_only_fields = ['id', 'slug']
+
+    def get_logo(self, obj):
+        if obj.logo:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.logo.url)
+            return obj.logo.url
+        return None
