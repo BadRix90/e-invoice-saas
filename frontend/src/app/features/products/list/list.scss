@@ -1,0 +1,36 @@
+.list-container {
+  h1 {
+    margin: 0;
+  }
+}
+
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+
+  button mat-icon {
+    margin-right: 0.5rem;
+  }
+}
+
+.search-field {
+  width: 100%;
+  max-width: 400px;
+  margin-bottom: 1rem;
+}
+
+.full-width {
+  width: 100%;
+}
+
+mat-chip.active {
+  background: #c8e6c9 !important;
+  color: #2e7d32 !important;
+}
+
+mat-chip.inactive {
+  background: #ffcdd2 !important;
+  color: #c62828 !important;
+}

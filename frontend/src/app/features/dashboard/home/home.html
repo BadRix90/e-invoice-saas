@@ -1,0 +1,37 @@
+<div class="home-container">
+  <h1>Willkommen zurück!</h1>
+
+  <div class="stats-grid">
+    @for (stat of stats(); track stat.title) {
+      <mat-card class="stat-card" [routerLink]="stat.route">
+        <mat-card-content>
+          <div class="stat-icon" [style.background]="stat.color">
+            <mat-icon>{{ stat.icon }}</mat-icon>
+          </div>
+          <div class="stat-info">
+            <span class="stat-value">{{ stat.value }}</span>
+            <span class="stat-title">{{ stat.title }}</span>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    }
+  </div>
+
+  <div class="actions-section">
+    <h2>Schnellaktionen</h2>
+    <div class="actions-grid">
+      <button mat-raised-button color="primary" routerLink="/dashboard/invoices/new">
+        <mat-icon>add</mat-icon>
+        Neue Rechnung
+      </button>
+      <button mat-raised-button routerLink="/dashboard/customers/new">
+        <mat-icon>person_add</mat-icon>
+        Neuer Kunde
+      </button>
+      <button mat-raised-button routerLink="/dashboard/products/new">
+        <mat-icon>add_box</mat-icon>
+        Neues Produkt
+      </button>
+    </div>
+  </div>
+</div>
