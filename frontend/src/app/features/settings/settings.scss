@@ -1,0 +1,48 @@
+.settings-container {
+  padding: 24px;
+  max-width: 800px;
+  margin: 0 auto;
+
+  h1 {
+    margin-bottom: 24px;
+  }
+}
+
+.settings-form {
+  padding-top: 24px;
+
+  mat-card {
+    margin-bottom: 16px;
+  }
+
+  mat-card-content {
+    padding-top: 16px;
+  }
+
+  .form-row {
+    display: flex;
+    gap: 16px;
+
+    mat-form-field {
+      flex: 1;
+    }
+
+    .flex-2 {
+      flex: 2;
+    }
+  }
+
+  .full-width {
+    width: 100%;
+  }
+
+  .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 24px;
+
+    button mat-icon {
+      margin-right: 8px;
+    }
+  }
+}

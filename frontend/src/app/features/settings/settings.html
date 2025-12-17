@@ -1,0 +1,127 @@
+<div class="settings-container">
+  <h1>Einstellungen</h1>
+
+  <mat-tab-group>
+    <mat-tab label="Firmendaten">
+      <form [formGroup]="form" (ngSubmit)="save()" class="settings-form">
+
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Unternehmen</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="form-row">
+              <mat-form-field appearance="outline">
+                <mat-label>Firmenname *</mat-label>
+                <input matInput formControlName="name">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Zusatz</mat-label>
+                <input matInput formControlName="company_name" placeholder="GmbH, UG, etc.">
+              </mat-form-field>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Adresse</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Straße & Hausnummer *</mat-label>
+              <input matInput formControlName="street">
+            </mat-form-field>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline">
+                <mat-label>PLZ *</mat-label>
+                <input matInput formControlName="zip_code">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="flex-2">
+                <mat-label>Stadt *</mat-label>
+                <input matInput formControlName="city">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Land *</mat-label>
+                <input matInput formControlName="country">
+              </mat-form-field>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Steuerdaten</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="form-row">
+              <mat-form-field appearance="outline">
+                <mat-label>Steuernummer</mat-label>
+                <input matInput formControlName="tax_id" placeholder="12/345/67890">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>USt-IdNr.</mat-label>
+                <input matInput formControlName="vat_id" placeholder="DE123456789">
+              </mat-form-field>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Kontakt</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="form-row">
+              <mat-form-field appearance="outline">
+                <mat-label>E-Mail *</mat-label>
+                <input matInput formControlName="email" type="email">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>Telefon</mat-label>
+                <input matInput formControlName="phone">
+              </mat-form-field>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card>
+          <mat-card-header>
+            <mat-card-title>Bankverbindung</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Bank</mat-label>
+              <input matInput formControlName="bank_name">
+            </mat-form-field>
+
+            <div class="form-row">
+              <mat-form-field appearance="outline" class="flex-2">
+                <mat-label>IBAN</mat-label>
+                <input matInput formControlName="iban" placeholder="DE89 3704 0044 0532 0130 00">
+              </mat-form-field>
+
+              <mat-form-field appearance="outline">
+                <mat-label>BIC</mat-label>
+                <input matInput formControlName="bic" placeholder="COBADEFFXXX">
+              </mat-form-field>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <div class="form-actions">
+          <button mat-raised-button color="primary" type="submit" [disabled]="saving()">
+            <mat-icon>save</mat-icon>
+            {{ saving() ? 'Speichern...' : 'Speichern' }}
+          </button>
+        </div>
+      </form>
+    </mat-tab>
+  </mat-tab-group>
+</div>

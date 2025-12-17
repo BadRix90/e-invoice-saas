@@ -92,6 +92,15 @@ export class ApiService {
 
   constructor(private http: HttpClient) { }
 
+  // Settings / Tenant
+  getTenant(): Observable<any> {
+    return this.http.get(`${this.API_URL}/tenants/current/`);
+  }
+
+  updateTenant(data: any): Observable<any> {
+    return this.http.patch(`${this.API_URL}/tenants/current/`, data);
+  }
+
   // ============ CUSTOMERS ============
   getCustomers(params?: { search?: string }): Observable<Customer[]> {
     let httpParams = new HttpParams();
@@ -236,3 +245,4 @@ export class ApiService {
     return this.http.get<{ is_valid: boolean; errors: string[]; warnings: string[] }>(`${this.API_URL}/invoices/${id}/validate/`);
   }
 }
+
