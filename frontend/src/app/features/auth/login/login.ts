@@ -16,7 +16,6 @@ import { AuthService } from '../../../core/services/auth';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    RouterLink,
     MatCardModule,
     MatFormFieldModule,
     MatInputModule,

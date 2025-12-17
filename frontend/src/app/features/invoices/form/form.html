@@ -1,0 +1,225 @@
+<div class="form-container">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>
+        {{ isEditMode() ? 'Rechnung bearbeiten' : 'Neue Rechnung' }}
+      </mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+        <!-- Kunde & Format -->
+        <div class="section">
+          <h3>Kunde & Format</h3>
+          <div class="form-row two-cols">
+            <mat-form-field appearance="outline">
+              <mat-label>Kunde *</mat-label>
+              <mat-select formControlName="customer" (selectionChange)="onCustomerSelect($event.value)">
+                @for (customer of customers(); track customer.id) {
+                <mat-option [value]="customer.id">{{ customer.display_name }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Rechnungsformat *</mat-label>
+              <mat-select formControlName="format">
+                @for (format of formatChoices; track format.value) {
+                <mat-option [value]="format.value">{{ format.label }}</mat-option>
+                }
+              </mat-select>
+            </mat-form-field>
+          </div>
+
+          <div class="form-row two-cols">
+            <mat-form-field appearance="outline">
+              <mat-label>Rechnungsdatum *</mat-label>
+              <input matInput [matDatepicker]="invoicePicker" formControlName="invoice_date">
+              <mat-datepicker-toggle matSuffix [for]="invoicePicker"></mat-datepicker-toggle>
+              <mat-datepicker #invoicePicker></mat-datepicker>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Fälligkeitsdatum *</mat-label>
+              <input matInput [matDatepicker]="duePicker" formControlName="due_date">
+              <mat-datepicker-toggle matSuffix [for]="duePicker"></mat-datepicker-toggle>
+              <mat-datepicker #duePicker></mat-datepicker>
+            </mat-form-field>
+          </div>
+
+          @if (form.get('format')?.value === 'xrechnung') {
+          <div class="form-row two-cols">
+            <mat-form-field appearance="outline">
+              <mat-label>Leitweg-ID</mat-label>
+              <input matInput formControlName="leitweg_id" placeholder="991-12345-67">
+              <mat-hint>Pflicht für Behörden</mat-hint>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Bestellnummer (Buyer Reference)</mat-label>
+              <input matInput formControlName="buyer_reference">
+            </mat-form-field>
+          </div>
+          }
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <!-- Positionen -->
+        <div class="section">
+          <div class="section-header">
+            <h3>Positionen</h3>
+            <button mat-stroked-button type="button" (click)="addItem()">
+              <mat-icon>add</mat-icon>
+              Position hinzufügen
+            </button>
+          </div>
+
+          <div class="items-list" formArrayName="items">
+            @for (item of items.controls; track item; let i = $index) {
+            <div class="item-card" [formGroupName]="i">
+              <div class="item-header">
+                <span class="item-position">Position {{ i + 1 }}</span>
+                <button mat-icon-button type="button" color="warn" (click)="removeItem(i)"
+                  [disabled]="items.length === 1" matTooltip="Position entfernen">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+
+              <div class="item-content">
+                <div class="item-row">
+                  <mat-form-field appearance="outline" class="product-select">
+                    <mat-label>Produkt wählen *</mat-label>
+                    <mat-select formControlName="product" (selectionChange)="onProductSelect(i, $event.value)">
+                      @for (product of products(); track product.id) {
+                      <mat-option [value]="product.id">
+                        {{ product.name }} – {{ formatPrice(+product.unit_price) }}/{{ getUnitLabel(product.unit) }}
+                      </mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline">
+                    <mat-label>Menge *</mat-label>
+                    <input matInput type="number" formControlName="quantity" min="0.001" step="1">
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline">
+                    <mat-label>MwSt</mat-label>
+                    <mat-select formControlName="vat_rate">
+                      @for (vat of vatRateChoices; track vat.value) {
+                      <mat-option [value]="vat.value">{{ vat.label }}</mat-option>
+                      }
+                    </mat-select>
+                  </mat-form-field>
+                </div>
+
+                @if (item.get('product')?.value) {
+                <div class="item-details">
+                  <div class="detail">
+                    <span class="detail-label">Beschreibung</span>
+                    <span class="detail-value">{{ item.get('description')?.value }}</span>
+                  </div>
+                  <div class="detail">
+                    <span class="detail-label">Einheit</span>
+                    <span class="detail-value">{{ getUnitLabel(item.get('unit')?.value) }}</span>
+                  </div>
+                  <div class="detail">
+                    <span class="detail-label">Einzelpreis</span>
+                    <span class="detail-value">{{ formatPrice(item.get('unit_price')?.value) }}</span>
+                  </div>
+                  <div class="detail line-total">
+                    <span class="detail-label">Summe netto</span>
+                    <span class="detail-value">{{ formatPrice(getLineTotal(i)) }}</span>
+                  </div>
+                </div>
+                } @else {
+                <div class="item-placeholder">
+                  <mat-icon>info</mat-icon>
+                  <span>Bitte Produkt auswählen</span>
+                </div>
+                }
+              </div>
+            </div>
+            }
+          </div>
+
+          @if (items.length === 0) {
+          <div class="no-items">
+            <p>Keine Positionen vorhanden.</p>
+            <button mat-stroked-button type="button" (click)="addItem()">
+              <mat-icon>add</mat-icon>
+              Erste Position hinzufügen
+            </button>
+          </div>
+          }
+        </div>
+
+
+        <mat-divider></mat-divider>
+
+        <!-- Summen -->
+        <div class="section totals-section">
+          <div class="totals">
+            <div class="vat-summary">
+              <h4>MwSt-Aufschlüsselung</h4>
+              @for (vat of getVatSummary(); track vat.rate) {
+              <div class="vat-row">
+                <span>Netto {{ vat.rate }}%:</span>
+                <span>{{ formatPrice(vat.net) }}</span>
+                <span>MwSt:</span>
+                <span>{{ formatPrice(vat.tax) }}</span>
+              </div>
+              }
+            </div>
+
+            <div class="total-summary">
+              <div class="total-row">
+                <span>Netto:</span>
+                <span>{{ formatPrice(getSubtotal()) }}</span>
+              </div>
+              <div class="total-row">
+                <span>MwSt:</span>
+                <span>{{ formatPrice(getTotalTax()) }}</span>
+              </div>
+              <div class="total-row grand-total">
+                <span>Brutto:</span>
+                <span>{{ formatPrice(getTotal()) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <!-- Notizen & Zahlungsbedingungen -->
+        <div class="section">
+          <h3>Weitere Angaben</h3>
+          <div class="form-row">
+            <mat-form-field appearance="outline">
+              <mat-label>Zahlungsbedingungen</mat-label>
+              <textarea matInput formControlName="payment_terms" rows="2"></textarea>
+            </mat-form-field>
+          </div>
+          <div class="form-row">
+            <mat-form-field appearance="outline">
+              <mat-label>Notizen / Bemerkungen</mat-label>
+              <textarea matInput formControlName="notes" rows="3"></textarea>
+            </mat-form-field>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button mat-button type="button" routerLink="/dashboard/invoices">
+            Abbrechen
+          </button>
+          <button mat-raised-button color="primary" type="submit"
+            [disabled]="form.invalid || items.length === 0 || isLoading()">
+            {{ isEditMode() ? 'Speichern' : 'Rechnung erstellen' }}
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

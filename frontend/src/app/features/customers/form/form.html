@@ -1,0 +1,141 @@
+<div class="form-container">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>
+        {{ isEditMode() ? 'Kunde bearbeiten' : 'Neuer Kunde' }}
+      </mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+        <div class="customer-type-selection">
+          <mat-radio-group formControlName="is_business">
+            <mat-radio-button [value]="true">Geschäftskunde (B2B)</mat-radio-button>
+            <mat-radio-button [value]="false">Privatkunde (B2C)</mat-radio-button>
+          </mat-radio-group>
+        </div>
+
+        @if (form.get('is_business')?.value) {
+          <!-- Geschäftskunde -->
+          <div class="form-row">
+            <mat-form-field appearance="outline">
+              <mat-label>Firmenname *</mat-label>
+              <input matInput formControlName="company_name">
+            </mat-form-field>
+          </div>
+
+          <div class="form-row two-cols">
+            <mat-form-field appearance="outline">
+              <mat-label>Ansprechpartner Vorname</mat-label>
+              <input matInput formControlName="first_name">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Ansprechpartner Nachname</mat-label>
+              <input matInput formControlName="last_name">
+            </mat-form-field>
+          </div>
+        } @else {
+          <!-- Privatkunde -->
+          <div class="form-row two-cols">
+            <mat-form-field appearance="outline">
+              <mat-label>Vorname *</mat-label>
+              <input matInput formControlName="first_name">
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Nachname *</mat-label>
+              <input matInput formControlName="last_name">
+            </mat-form-field>
+          </div>
+        }
+
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Straße *</mat-label>
+            <input matInput formControlName="street">
+          </mat-form-field>
+        </div>
+
+        <div class="form-row three-cols">
+          <mat-form-field appearance="outline">
+            <mat-label>PLZ *</mat-label>
+            <input matInput formControlName="zip_code">
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="col-span-2">
+            <mat-label>Stadt *</mat-label>
+            <input matInput formControlName="city">
+          </mat-form-field>
+        </div>
+
+        <div class="form-row two-cols">
+          <mat-form-field appearance="outline">
+            <mat-label>Land</mat-label>
+            <mat-select formControlName="country">
+              <mat-option value="DE">Deutschland</mat-option>
+              <mat-option value="AT">Österreich</mat-option>
+              <mat-option value="CH">Schweiz</mat-option>
+              <mat-option value="NL">Niederlande</mat-option>
+              <mat-option value="FR">Frankreich</mat-option>
+              <mat-option value="BE">Belgien</mat-option>
+              <mat-option value="PL">Polen</mat-option>
+              <mat-option value="IT">Italien</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>E-Mail</mat-label>
+            <input matInput formControlName="email" type="email">
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Telefon</mat-label>
+            <input matInput formControlName="phone">
+          </mat-form-field>
+        </div>
+
+        @if (form.get('is_business')?.value) {
+          <mat-divider></mat-divider>
+          <h3>Steuer & Rechnungsstellung</h3>
+
+          <div class="form-row two-cols">
+            <mat-form-field appearance="outline">
+              <mat-label>USt-IdNr.</mat-label>
+              <input matInput formControlName="vat_id" placeholder="DE123456789">
+              <mat-hint>Für Reverse Charge bei EU-Ausland</mat-hint>
+            </mat-form-field>
+
+            <mat-form-field appearance="outline">
+              <mat-label>Leitweg-ID</mat-label>
+              <input matInput formControlName="leitweg_id" placeholder="991-12345-67">
+              <mat-hint>Nur für Behörden (XRechnung)</mat-hint>
+            </mat-form-field>
+          </div>
+        }
+
+        <mat-divider></mat-divider>
+        <h3>Zahlungsbedingungen</h3>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline" style="width: 200px;">
+            <mat-label>Zahlungsziel (Tage)</mat-label>
+            <input matInput formControlName="payment_terms_days" type="number">
+          </mat-form-field>
+        </div>
+
+        <div class="form-actions">
+          <button mat-button type="button" routerLink="/dashboard/customers">
+            Abbrechen
+          </button>
+          <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid || isLoading()">
+            {{ isEditMode() ? 'Speichern' : 'Erstellen' }}
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

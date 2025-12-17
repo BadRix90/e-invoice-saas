@@ -1,0 +1,104 @@
+<div class="form-container">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>
+        {{ isEditMode() ? 'Produkt bearbeiten' : 'Neues Produkt' }}
+      </mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+        <div class="product-type-selection">
+          <label>Produkttyp</label>
+          <mat-radio-group [value]="productType()" (change)="onProductTypeChange($event.value)">
+            <mat-radio-button value="service">
+              <mat-icon>engineering</mat-icon>
+              Dienstleistung
+            </mat-radio-button>
+            <mat-radio-button value="product">
+              <mat-icon>inventory_2</mat-icon>
+              Ware / Produkt
+            </mat-radio-button>
+          </mat-radio-group>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Bezeichnung *</mat-label>
+            <input matInput formControlName="name" placeholder="z.B. Webentwicklung, Beratung, Laptop">
+          </mat-form-field>
+        </div>
+
+        <div class="form-row">
+          <mat-form-field appearance="outline">
+            <mat-label>Beschreibung</mat-label>
+            <textarea matInput formControlName="description" rows="3"
+                      placeholder="Optionale Beschreibung für die Rechnung"></textarea>
+          </mat-form-field>
+        </div>
+
+        <mat-divider></mat-divider>
+        <h3>Preis & Einheit</h3>
+
+        <div class="form-row two-cols">
+          <mat-form-field appearance="outline">
+            <mat-label>Einheit *</mat-label>
+            <mat-select formControlName="unit">
+              @for (unit of getFilteredUnits(); track unit.value) {
+                <mat-option [value]="unit.value">{{ unit.label }}</mat-option>
+              }
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Nettopreis (€) *</mat-label>
+            <input matInput formControlName="unit_price" type="number" step="0.01" min="0">
+            <span matTextSuffix>€</span>
+          </mat-form-field>
+        </div>
+
+        <mat-divider></mat-divider>
+        <h3>Mehrwertsteuer</h3>
+
+        <div class="vat-selection">
+          <mat-radio-group formControlName="vat_rate">
+            @for (vat of vatRateChoices; track vat.value) {
+              <mat-radio-button [value]="vat.value">{{ vat.label }}</mat-radio-button>
+            }
+          </mat-radio-group>
+        </div>
+
+        <div class="price-preview">
+          <div class="price-row">
+            <span>Nettopreis:</span>
+            <span>{{ formatPrice(form.get('unit_price')?.value || '0') }}</span>
+          </div>
+          <div class="price-row">
+            <span>MwSt ({{ form.get('vat_rate')?.value }}%):</span>
+            <span>{{ formatPrice(((form.get('unit_price')?.value || 0) * (form.get('vat_rate')?.value || 0) / 100).toString()) }}</span>
+          </div>
+          <div class="price-row total">
+            <span>Bruttopreis:</span>
+            <span>{{ calculateGross() }}</span>
+          </div>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <mat-checkbox formControlName="is_active">
+          Produkt ist aktiv (in Rechnungen auswählbar)
+        </mat-checkbox>
+
+        <div class="form-actions">
+          <button mat-button type="button" routerLink="/dashboard/products">
+            Abbrechen
+          </button>
+          <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid || isLoading()">
+            {{ isEditMode() ? 'Speichern' : 'Erstellen' }}
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>
