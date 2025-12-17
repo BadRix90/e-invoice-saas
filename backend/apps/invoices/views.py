@@ -3,8 +3,8 @@ from rest_framework import viewsets, permissions, filters, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
-from .models import Invoice, InvoiceItem
-from .serializers import InvoiceSerializer, InvoiceItemSerializer, InvoiceItemCreateSerializer
+from .models import Invoice, InvoiceItem, Reminder
+from .serializers import InvoiceSerializer, InvoiceItemSerializer, InvoiceItemCreateSerializer, ReminderSerializer
 from .xrechnung import generate_xrechnung
 from .validator import validate_xrechnung, check_validator_health
 from .zugferd import generate_zugferd_pdf
@@ -59,39 +59,103 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         invoice.status = 'sent'
         invoice.save()
         return Response(InvoiceSerializer(invoice).data)
-    
+
     @action(detail=True, methods=['post'])
     def send_email(self, request, pk=None):
         """Rechnung per E-Mail versenden"""
         invoice = self.get_object()
-        
+
         if invoice.status == 'draft':
             return Response(
                 {'error': 'Entwürfe können nicht versendet werden.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         # Optional: andere E-Mail-Adresse
         recipient = request.data.get('email', invoice.customer.email)
-        
+
         if not recipient:
             return Response(
                 {'error': 'Keine E-Mail-Adresse vorhanden.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         try:
             send_invoice_email(invoice, recipient)
-            
+
             # Status auf "versendet" setzen
             if invoice.status == 'final':
                 invoice.status = 'sent'
                 invoice.save()
-            
+
             return Response({
                 'success': True,
                 'message': f'Rechnung an {recipient} versendet.',
                 'invoice': InvoiceSerializer(invoice).data
+            })
+        except Exception as e:
+            return Response(
+                {'error': f'Fehler beim Versenden: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    @action(detail=True, methods=['get', 'post'])
+    def reminders(self, request, pk=None):
+        """Mahnungen abrufen oder neue Mahnung senden"""
+        from .email import send_reminder_email
+
+        invoice = self.get_object()
+
+        if request.method == 'GET':
+            reminders = invoice.reminders.all()
+            return Response(ReminderSerializer(reminders, many=True).data)
+
+        # POST: Neue Mahnung senden
+        if invoice.status not in ['sent', 'final']:
+            return Response(
+                {'error': 'Nur versendete/finalisierte Rechnungen können gemahnt werden.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if invoice.status == 'paid':
+            return Response(
+                {'error': 'Rechnung ist bereits bezahlt.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Nächste Mahnstufe ermitteln
+        last_reminder = invoice.reminders.order_by('-level').first()
+        next_level = (last_reminder.level + 1) if last_reminder else 1
+
+        if next_level > 3:
+            return Response(
+                {'error': 'Maximale Mahnstufe (3) erreicht.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        recipient = request.data.get('email', invoice.customer.email)
+        fee = request.data.get('fee', 0)
+
+        if not recipient:
+            return Response(
+                {'error': 'Keine E-Mail-Adresse vorhanden.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            send_reminder_email(invoice, next_level, recipient, fee)
+
+            reminder = Reminder.objects.create(
+                invoice=invoice,
+                level=next_level,
+                sent_to=recipient,
+                fee=fee,
+            )
+
+            return Response({
+                'success': True,
+                'message': f'Mahnung Stufe {next_level} an {recipient} versendet.',
+                'reminder': ReminderSerializer(reminder).data
             })
         except Exception as e:
             return Response(

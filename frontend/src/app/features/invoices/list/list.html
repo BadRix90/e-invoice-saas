@@ -94,6 +94,10 @@
                 <mat-icon>email</mat-icon>
                 Erneut per E-Mail senden
               </button>
+              <button mat-menu-item (click)="sendReminder(invoice.id)">
+                <mat-icon>notification_important</mat-icon>
+                Mahnung senden
+              </button>
               }
               @if (invoice.status === 'sent' || invoice.status === 'final') {
               <button mat-menu-item (click)="markPaid(invoice.id)">

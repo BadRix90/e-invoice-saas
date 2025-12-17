@@ -239,6 +239,37 @@ export class ListComponent implements OnInit {
     });
   }
 
+  sendReminder(id: number): void {
+    const invoice = this.invoices().find(i => i.id === id);
+
+    if (!invoice) return;
+
+    if (invoice.status === 'paid') {
+      this.snackBar.open('Rechnung ist bereits bezahlt', 'OK', { duration: 3000 });
+      return;
+    }
+
+    if (invoice.status === 'draft') {
+      this.snackBar.open('Bitte Rechnung erst finalisieren', 'OK', { duration: 3000 });
+      return;
+    }
+
+    const confirmSend = confirm(`Mahnung für Rechnung ${invoice.invoice_number} versenden?`);
+    if (!confirmSend) return;
+
+    this.snackBar.open('Sende Mahnung...', '', { duration: 0 });
+
+    this.apiService.sendReminder(id).subscribe({
+      next: (result) => {
+        this.snackBar.open(result.message, 'OK', { duration: 3000 });
+      },
+      error: (err) => {
+        const msg = err.error?.error || 'Fehler beim Mahnung-Versand';
+        this.snackBar.open(msg, 'OK', { duration: 3000 });
+      }
+    });
+  }
+
   validateInvoice(id: number): void {
     this.snackBar.open('Validiere...', '', { duration: 0 });
 

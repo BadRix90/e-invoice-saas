@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from decimal import Decimal, ROUND_HALF_UP
-from .models import Invoice, InvoiceItem
+from .models import Invoice, InvoiceItem, Reminder
 
 
 class InvoiceItemSerializer(serializers.ModelSerializer):
@@ -141,3 +141,22 @@ class InvoiceItemCreateSerializer(serializers.ModelSerializer):
             
             invoice = super().create(validated_data)
             return invoice
+        
+class ReminderSerializer(serializers.ModelSerializer):
+    invoice_number = serializers.CharField(source='invoice.invoice_number', read_only=True)
+    level_display = serializers.CharField(source='get_level_display', read_only=True)
+
+    class Meta:
+        model = Reminder
+        fields = [
+            'id',
+            'invoice',
+            'invoice_number',
+            'level',
+            'level_display',
+            'sent_at',
+            'sent_to',
+            'fee',
+            'notes',
+        ]
+        read_only_fields = ['id', 'sent_at']

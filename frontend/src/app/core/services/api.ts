@@ -104,6 +104,17 @@ export interface DashboardStats {
     count: number;
   }[];
 }
+export interface Reminder {
+  id: number;
+  invoice: number;
+  invoice_number: string;
+  level: number;
+  level_display: string;
+  sent_at: string;
+  sent_to: string;
+  fee: string;
+  notes: string;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -234,6 +245,17 @@ export class ApiService {
     return this.http.post<{ success: boolean; message: string; invoice: Invoice }>(
       `${this.API_URL}/invoices/${id}/send_email/`,
       email ? { email } : {}
+    );
+  }
+
+  getReminders(invoiceId: number): Observable<Reminder[]> {
+    return this.http.get<Reminder[]>(`${this.API_URL}/invoices/${invoiceId}/reminders/`);
+  }
+
+  sendReminder(invoiceId: number, email?: string, fee?: number): Observable<{ success: boolean; message: string; reminder: Reminder }> {
+    return this.http.post<{ success: boolean; message: string; reminder: Reminder }>(
+      `${this.API_URL}/invoices/${invoiceId}/reminders/`,
+      { email, fee }
     );
   }
 

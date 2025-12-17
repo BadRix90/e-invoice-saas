@@ -145,3 +145,36 @@ class InvoiceItem(models.Model):
         self.line_total = self.quantity * self.unit_price
         self.tax_amount = self.line_total * (self.vat_rate / Decimal("100"))
         super().save(*args, **kwargs)
+
+
+class Reminder(models.Model):
+    """
+    Zahlungserinnerung / Mahnung
+    """
+
+    LEVEL_CHOICES = [
+        (1, "1. Zahlungserinnerung"),
+        (2, "2. Mahnung"),
+        (3, "3. Mahnung (letzte)"),
+    ]
+
+    invoice = models.ForeignKey(
+        Invoice,
+        on_delete=models.CASCADE,
+        related_name="reminders",
+    )
+
+    level = models.PositiveIntegerField(choices=LEVEL_CHOICES, default=1)
+    sent_at = models.DateTimeField(auto_now_add=True)
+    sent_to = models.EmailField()
+    fee = models.DecimalField(max_digits=8, decimal_places=2, default=Decimal("0.00"))
+    notes = models.TextField(blank=True)
+
+    class Meta:
+        db_table = "invoice_reminders"
+        verbose_name = "Reminder"
+        verbose_name_plural = "Reminders"
+        ordering = ["-sent_at"]
+
+    def __str__(self) -> str:
+        return f"Mahnung {self.level} - {self.invoice.invoice_number}"
