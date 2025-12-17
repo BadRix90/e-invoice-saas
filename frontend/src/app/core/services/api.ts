@@ -200,6 +200,12 @@ export class ApiService {
     });
   }
 
+  downloadInvoicePdf(id: number): Observable<Blob> {
+    return this.http.get(`${this.API_URL}/invoices/${id}/download_pdf/`, {
+      responseType: 'blob'
+    });
+  }
+
   // ============ INVOICE ITEMS ============
   createInvoiceItem(data: Partial<InvoiceItem> & { invoice: number }): Observable<InvoiceItem> {
     return this.http.post<InvoiceItem>(`${this.API_URL}/invoices/items/`, data);

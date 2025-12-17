@@ -110,7 +110,26 @@ export class ListComponent implements OnInit {
   }
 
   downloadPdf(id: number): void {
-    this.snackBar.open('PDF-Download kommt bald', 'OK', { duration: 2000 });
+    const invoice = this.invoices().find(i => i.id === id);
+    if (invoice?.status === 'draft') {
+      this.snackBar.open('Bitte Rechnung erst finalisieren', 'OK', { duration: 3000 });
+      return;
+    }
+
+    this.apiService.downloadInvoicePdf(id).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${invoice?.invoice_number || 'rechnung'}.pdf`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        this.snackBar.open('PDF heruntergeladen', 'OK', { duration: 2000 });
+      },
+      error: () => {
+        this.snackBar.open('Fehler beim PDF-Download', 'OK', { duration: 3000 });
+      }
+    });
   }
 
   downloadXml(id: number): void {
@@ -137,6 +156,7 @@ export class ListComponent implements OnInit {
       }
     });
   }
+
 
   finalizeInvoice(id: number): void {
     this.apiService.finalizeInvoice(id).subscribe({

@@ -7,6 +7,7 @@ from .models import Invoice, InvoiceItem
 from .serializers import InvoiceSerializer, InvoiceItemSerializer, InvoiceItemCreateSerializer
 from .xrechnung import generate_xrechnung
 from .validator import validate_xrechnung, check_validator_health
+from .zugferd import generate_zugferd_pdf
 
 
 class InvoiceViewSet(viewsets.ModelViewSet):
@@ -152,6 +153,24 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             xml_content, content_type='application/xml; charset=utf-8')
         response['Content-Disposition'] = f'attachment; filename="{invoice.invoice_number}.xml"'
         return response
+    
+    @action(detail=True, methods=['get'])
+    def download_pdf(self, request, pk=None):
+        """ZUGFeRD PDF herunterladen"""
+        invoice = self.get_object()
+        
+        if invoice.status == 'draft':
+            return Response(
+                {'error': 'Bitte Rechnung erst finalisieren.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        invoice.calculate_totals()
+        pdf_content = generate_zugferd_pdf(invoice)
+        
+        response = HttpResponse(pdf_content, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{invoice.invoice_number}.pdf"'
+        return response
 
     @action(detail=True, methods=['get'])
     def validate(self, request, pk=None):
@@ -177,6 +196,8 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     def validator_status(self, request):
         """Prüft ob der Validator erreichbar ist"""
         return Response({'validator_available': check_validator_health()})
+    
+    
 
 
 class InvoiceItemViewSet(viewsets.ModelViewSet):
