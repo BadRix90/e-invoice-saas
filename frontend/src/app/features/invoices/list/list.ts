@@ -226,4 +226,21 @@ export class ListComponent implements OnInit {
       }
     });
   }
+
+  exportDatev(): void {
+    this.apiService.exportDatev().subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `datev_export_${new Date().toISOString().split('T')[0]}.csv`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        this.snackBar.open('DATEV Export heruntergeladen', 'OK', { duration: 2000 });
+      },
+      error: () => {
+        this.snackBar.open('Fehler beim Export', 'OK', { duration: 3000 });
+      }
+    });
+  }
 }

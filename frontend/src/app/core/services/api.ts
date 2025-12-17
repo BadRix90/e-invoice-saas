@@ -206,6 +206,19 @@ export class ApiService {
     });
   }
 
+  exportDatev(from?: string, to?: string): Observable<Blob> {
+    let params = '';
+    if (from || to) {
+      const p = new URLSearchParams();
+      if (from) p.set('from', from);
+      if (to) p.set('to', to);
+      params = '?' + p.toString();
+    }
+    return this.http.get(`${this.API_URL}/invoices/export_datev/${params}`, {
+      responseType: 'blob'
+    });
+  }
+
   // ============ INVOICE ITEMS ============
   createInvoiceItem(data: Partial<InvoiceItem> & { invoice: number }): Observable<InvoiceItem> {
     return this.http.post<InvoiceItem>(`${this.API_URL}/invoices/items/`, data);

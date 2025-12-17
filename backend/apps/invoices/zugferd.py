@@ -3,16 +3,18 @@ ZUGFeRD 2.1 / Factur-X PDF Generator
 PDF/A-3 mit eingebettetem XRechnung XML
 """
 import io
+import os
 from datetime import date
 from decimal import Decimal
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from pypdf import PdfReader, PdfWriter
+from django.conf import settings
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -24,14 +26,13 @@ from .xrechnung import generate_xrechnung
 def generate_zugferd_pdf(invoice: 'Invoice') -> bytes:
     """Generiert ZUGFeRD 2.1 PDF mit eingebettetem XML."""
     
-    # 1. PDF erstellen
     pdf_buffer = io.BytesIO()
     doc = SimpleDocTemplate(
         pdf_buffer,
         pagesize=A4,
         rightMargin=20*mm,
         leftMargin=20*mm,
-        topMargin=20*mm,
+        topMargin=10*mm,
         bottomMargin=20*mm
     )
     
@@ -42,31 +43,54 @@ def generate_zugferd_pdf(invoice: 'Invoice') -> bytes:
         spaceAfter=10*mm,
         fontName='Helvetica-Bold'
     ))
-    styles.add(ParagraphStyle(
-        name='CompanyName',
-        fontSize=12,
-        fontName='Helvetica-Bold'
-    ))
-    styles.add(ParagraphStyle(
-        name='Small',
-        fontSize=8,
-        textColor=colors.grey
-    ))
     
     elements = []
     tenant = invoice.tenant
     customer = invoice.customer
     
-    # Header: Absender
+    # Logo + Absender Header
+    logo_path = os.path.join(settings.BASE_DIR, 'static', 'logos', 'logo.png')
+    
     sender_text = f"""
     <b>{tenant.name}</b><br/>
     {tenant.street}<br/>
     {tenant.zip_code} {tenant.city}<br/>
     USt-IdNr.: {tenant.vat_id or '-'}
     """
-    elements.append(Paragraph(sender_text, styles['Normal']))
+    
+    if os.path.exists(logo_path):
+    # Logo mit Seitenverhältnis berechnen
+        from reportlab.lib.utils import ImageReader
+        img = ImageReader(logo_path)
+        img_width, img_height = img.getSize()
+        aspect = img_height / img_width
+        
+        logo_width = 50*mm
+        logo_height = logo_width * aspect
+        
+        # Max-Höhe begrenzen
+        if logo_height > 20*mm:
+            logo_height = 20*mm
+            logo_width = logo_height / aspect
+        
+        logo = Image(logo_path, width=logo_width, height=logo_height)
+        logo.hAlign = 'RIGHT'
+        
+        header_table = Table(
+            [[Paragraph(sender_text, styles['Normal']), logo]],
+            colWidths=[110*mm, 60*mm]
+        )
+        header_table.setStyle(TableStyle([
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('ALIGN', (1, 0), (1, 0), 'RIGHT'),
+        ]))
+        elements.append(header_table)
+    else:
+        elements.append(Paragraph(sender_text, styles['Normal']))
+    
     elements.append(Spacer(1, 15*mm))
     
+    # Rest bleibt gleich...
     # Empfänger
     recipient_text = f"""
     <b>{customer.display_name}</b><br/>
@@ -118,7 +142,7 @@ def generate_zugferd_pdf(invoice: 'Invoice') -> bytes:
     # Summen
     summary_data = [
         ['Nettobetrag:', f"{invoice.subtotal:.2f} €"],
-        [f'MwSt:', f"{invoice.tax_amount:.2f} €"],
+        ['MwSt:', f"{invoice.tax_amount:.2f} €"],
         ['Gesamtbetrag:', f"{invoice.total:.2f} €"],
     ]
     summary_table = Table(summary_data, colWidths=[140*mm, 30*mm])
@@ -152,14 +176,10 @@ def generate_zugferd_pdf(invoice: 'Invoice') -> bytes:
     """
     elements.append(Paragraph(footer_text, styles['Normal']))
     
-    # PDF bauen
     doc.build(elements)
     pdf_buffer.seek(0)
     
-    # 2. XML generieren
     xml_content = generate_xrechnung(invoice)
-    
-    # 3. XML in PDF einbetten
     pdf_with_xml = _embed_xml_in_pdf(pdf_buffer.getvalue(), xml_content, invoice.invoice_number)
     
     return pdf_with_xml
@@ -170,17 +190,14 @@ def _embed_xml_in_pdf(pdf_bytes: bytes, xml_content: str, invoice_number: str) -
     reader = PdfReader(io.BytesIO(pdf_bytes))
     writer = PdfWriter()
     
-    # Seiten kopieren
     for page in reader.pages:
         writer.add_page(page)
     
-    # XML als Anhang hinzufügen
     writer.add_attachment(
         filename="factur-x.xml",
         data=xml_content.encode('utf-8')
     )
     
-    # PDF Metadaten setzen
     writer.add_metadata({
         '/Title': f'Rechnung {invoice_number}',
         '/Subject': 'ZUGFeRD 2.1 / Factur-X Rechnung',
@@ -188,7 +205,6 @@ def _embed_xml_in_pdf(pdf_bytes: bytes, xml_content: str, invoice_number: str) -
         '/Producer': 'ReportLab + pypdf',
     })
     
-    # Output
     output = io.BytesIO()
     writer.write(output)
     return output.getvalue()

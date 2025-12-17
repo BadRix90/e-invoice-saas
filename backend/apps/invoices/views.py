@@ -8,6 +8,8 @@ from .serializers import InvoiceSerializer, InvoiceItemSerializer, InvoiceItemCr
 from .xrechnung import generate_xrechnung
 from .validator import validate_xrechnung, check_validator_health
 from .zugferd import generate_zugferd_pdf
+from datetime import date
+from .datev import generate_datev_simple
 
 
 class InvoiceViewSet(viewsets.ModelViewSet):
@@ -153,21 +155,21 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             xml_content, content_type='application/xml; charset=utf-8')
         response['Content-Disposition'] = f'attachment; filename="{invoice.invoice_number}.xml"'
         return response
-    
+
     @action(detail=True, methods=['get'])
     def download_pdf(self, request, pk=None):
         """ZUGFeRD PDF herunterladen"""
         invoice = self.get_object()
-        
+
         if invoice.status == 'draft':
             return Response(
                 {'error': 'Bitte Rechnung erst finalisieren.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         invoice.calculate_totals()
         pdf_content = generate_zugferd_pdf(invoice)
-        
+
         response = HttpResponse(pdf_content, content_type='application/pdf')
         response['Content-Disposition'] = f'attachment; filename="{invoice.invoice_number}.pdf"'
         return response
@@ -196,8 +198,27 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     def validator_status(self, request):
         """Prüft ob der Validator erreichbar ist"""
         return Response({'validator_available': check_validator_health()})
-    
-    
+
+    @action(detail=False, methods=['get'])
+    def export_datev(self, request):
+        """DATEV CSV Export aller finalisierten Rechnungen"""
+        invoices = self.get_queryset().exclude(status='draft')
+
+        # Optional: Datumsfilter
+        date_from = request.query_params.get('from')
+        date_to = request.query_params.get('to')
+
+        if date_from:
+            invoices = invoices.filter(invoice_date__gte=date_from)
+        if date_to:
+            invoices = invoices.filter(invoice_date__lte=date_to)
+
+        csv_content = generate_datev_simple(list(invoices))
+
+        response = HttpResponse(
+            csv_content, content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = f'attachment; filename="datev_export_{date.today()}.csv"'
+        return response
 
 
 class InvoiceItemViewSet(viewsets.ModelViewSet):
