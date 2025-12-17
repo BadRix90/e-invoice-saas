@@ -38,10 +38,9 @@ class Customer(models.Model):
     phone = models.CharField(max_length=50, blank=True)
 
     # Tax information
-    vat_id = models.CharField(max_length=50, blank=True)  # USt-IdNr.
-
+    vat_id = models.CharField(max_length=50, blank=True)
     # XRechnung specific
-    leitweg_id = models.CharField(max_length=50, blank=True)  # Leitweg-ID for B2G
+    leitweg_id = models.CharField(max_length=50, blank=True)
 
     # Payment
     payment_terms_days = models.PositiveIntegerField(default=30)
