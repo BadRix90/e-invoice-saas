@@ -10,7 +10,7 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     serializer_class = InvoiceSerializer
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['status', 'invoice_format', 'customer']
+    filterset_fields = ['status', 'format', 'customer']
     search_fields = ['invoice_number', 'customer__company_name']
     ordering_fields = ['invoice_number', 'invoice_date', 'created_at']
     ordering = ['-invoice_date']
@@ -85,7 +85,7 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             tenant=original.tenant,
             customer=original.customer,
             status='draft',
-            invoice_format=original.invoice_format,
+            format=original.format,
             payment_terms=original.payment_terms,
             notes=original.notes,
             created_by=request.user,

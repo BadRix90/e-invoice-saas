@@ -46,12 +46,14 @@ export class ListComponent implements OnInit {
   loadProducts(): void {
     this.isLoading.set(true);
     this.apiService.getProducts().subscribe({
-      next: (data) => {
-        this.products.set(data);
+      next: (data: any) => {
+        const products = Array.isArray(data) ? data : (data.results || []);
+        this.products.set(products);
         this.isLoading.set(false);
       },
       error: () => {
         this.snackBar.open('Fehler beim Laden der Produkte', 'OK', { duration: 3000 });
+        this.products.set([]);
         this.isLoading.set(false);
       }
     });
@@ -60,7 +62,10 @@ export class ListComponent implements OnInit {
   onSearch(event: Event): void {
     const value = (event.target as HTMLInputElement).value;
     this.apiService.getProducts({ search: value }).subscribe({
-      next: (data) => this.products.set(data)
+      next: (data: any) => {
+        const products = Array.isArray(data) ? data : (data.results || []);
+        this.products.set(products);
+      }
     });
   }
 

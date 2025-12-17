@@ -44,12 +44,16 @@ export class ListComponent implements OnInit {
   loadCustomers(): void {
     this.isLoading.set(true);
     this.apiService.getCustomers().subscribe({
-      next: (data) => {
-        this.customers.set(data);
+      next: (data: any) => {
+        // Handle both array and paginated response
+        const customers = Array.isArray(data) ? data : (data.results || []);
+        this.customers.set(customers);
         this.isLoading.set(false);
       },
       error: (err) => {
+        console.error('Error loading customers:', err);
         this.snackBar.open('Fehler beim Laden der Kunden', 'OK', { duration: 3000 });
+        this.customers.set([]);
         this.isLoading.set(false);
       }
     });
@@ -58,7 +62,10 @@ export class ListComponent implements OnInit {
   onSearch(event: Event): void {
     const value = (event.target as HTMLInputElement).value;
     this.apiService.getCustomers({ search: value }).subscribe({
-      next: (data) => this.customers.set(data)
+      next: (data: any) => {
+        const customers = Array.isArray(data) ? data : (data.results || []);
+        this.customers.set(customers);
+      }
     });
   }
 

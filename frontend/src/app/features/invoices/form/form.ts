@@ -115,13 +115,19 @@ export class FormComponent implements OnInit {
 
   loadCustomers(): void {
     this.apiService.getCustomers().subscribe({
-      next: (data) => this.customers.set(data)
+      next: (data: any) => {
+        const customers = Array.isArray(data) ? data : (data.results || []);
+        this.customers.set(customers);
+      }
     });
   }
 
   loadProducts(): void {
     this.apiService.getProducts({ is_active: true }).subscribe({
-      next: (data) => this.products.set(data)
+      next: (data: any) => {
+        const products = Array.isArray(data) ? data : (data.results || []);
+        this.products.set(products);
+      }
     });
   }
 

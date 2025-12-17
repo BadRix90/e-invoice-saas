@@ -48,12 +48,14 @@ export class ListComponent implements OnInit {
   loadInvoices(): void {
     this.isLoading.set(true);
     this.apiService.getInvoices().subscribe({
-      next: (data) => {
-        this.invoices.set(data);
+      next: (data: any) => {
+        const invoices = Array.isArray(data) ? data : (data.results || []);
+        this.invoices.set(invoices);
         this.isLoading.set(false);
       },
       error: () => {
         this.snackBar.open('Fehler beim Laden der Rechnungen', 'OK', { duration: 3000 });
+        this.invoices.set([]);
         this.isLoading.set(false);
       }
     });
@@ -62,7 +64,10 @@ export class ListComponent implements OnInit {
   onSearch(event: Event): void {
     const value = (event.target as HTMLInputElement).value;
     this.apiService.getInvoices({ search: value }).subscribe({
-      next: (data) => this.invoices.set(data)
+      next: (data: any) => {
+        const invoices = Array.isArray(data) ? data : (data.results || []);
+        this.invoices.set(invoices);
+      }
     });
   }
 
@@ -105,12 +110,10 @@ export class ListComponent implements OnInit {
   }
 
   downloadPdf(id: number): void {
-    // TODO: Implementieren wenn PDF-Generierung fertig
     this.snackBar.open('PDF-Download kommt bald', 'OK', { duration: 2000 });
   }
 
   downloadXml(id: number): void {
-    // TODO: Implementieren wenn XML-Generierung fertig
     this.snackBar.open('XML-Download kommt bald', 'OK', { duration: 2000 });
   }
 }
