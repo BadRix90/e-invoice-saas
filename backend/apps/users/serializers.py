@@ -11,5 +11,6 @@ class TenantSerializer(serializers.ModelSerializer):
             'tax_id', 'vat_id',
             'email', 'phone',
             'bank_name', 'iban', 'bic',
+            'logo',
         ]
         read_only_fields = ['id', 'slug']

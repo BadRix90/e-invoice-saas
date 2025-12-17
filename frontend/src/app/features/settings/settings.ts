@@ -31,6 +31,8 @@ export class SettingsComponent implements OnInit {
   form: FormGroup;
   loading = signal(false);
   saving = signal(false);
+  logoUrl = signal<string | null>(null);
+  uploadingLogo = signal(false);
 
   constructor(
     private fb: FormBuilder,
@@ -63,6 +65,7 @@ export class SettingsComponent implements OnInit {
     this.apiService.getTenant().subscribe({
       next: (tenant) => {
         this.form.patchValue(tenant);
+        this.logoUrl.set(tenant.logo || null);
         this.loading.set(false);
       },
       error: () => {
@@ -87,6 +90,45 @@ export class SettingsComponent implements OnInit {
       error: () => {
         this.snackBar.open('Fehler beim Speichern', 'OK', { duration: 3000 });
         this.saving.set(false);
+      }
+    });
+  }
+
+  onLogoSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
+
+    const file = input.files[0];
+    if (!file.type.startsWith('image/')) {
+      this.snackBar.open('Bitte ein Bild auswählen', 'OK', { duration: 3000 });
+      return;
+    }
+
+    this.uploadingLogo.set(true);
+    this.apiService.uploadLogo(file).subscribe({
+      next: (tenant) => {
+        this.logoUrl.set(tenant.logo);
+        this.snackBar.open('Logo hochgeladen', 'OK', { duration: 2000 });
+        this.uploadingLogo.set(false);
+      },
+      error: () => {
+        this.snackBar.open('Fehler beim Hochladen', 'OK', { duration: 3000 });
+        this.uploadingLogo.set(false);
+      }
+    });
+  }
+
+  deleteLogo(): void {
+    this.uploadingLogo.set(true);
+    this.apiService.deleteLogo().subscribe({
+      next: () => {
+        this.logoUrl.set(null);
+        this.snackBar.open('Logo gelöscht', 'OK', { duration: 2000 });
+        this.uploadingLogo.set(false);
+      },
+      error: () => {
+        this.snackBar.open('Fehler beim Löschen', 'OK', { duration: 3000 });
+        this.uploadingLogo.set(false);
       }
     });
   }

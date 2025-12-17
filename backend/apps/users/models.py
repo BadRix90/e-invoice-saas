@@ -34,6 +34,9 @@ class Tenant(models.Model):
     bank_name = models.CharField(max_length=255, blank=True)
     iban = models.CharField(max_length=34, blank=True)
     bic = models.CharField(max_length=11, blank=True)
+    
+    # Logo
+    logo = models.ImageField(upload_to="logos/", blank=True, null=True)
 
     # Subscription
     is_active = models.BooleanField(default=True)

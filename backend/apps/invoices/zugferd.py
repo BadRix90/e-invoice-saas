@@ -49,7 +49,7 @@ def generate_zugferd_pdf(invoice: 'Invoice') -> bytes:
     customer = invoice.customer
     
     # Logo + Absender Header
-    logo_path = os.path.join(settings.BASE_DIR, 'static', 'logos', 'logo.png')
+    logo_path = tenant.logo.path if tenant.logo else None
     
     sender_text = f"""
     <b>{tenant.name}</b><br/>
@@ -58,7 +58,7 @@ def generate_zugferd_pdf(invoice: 'Invoice') -> bytes:
     USt-IdNr.: {tenant.vat_id or '-'}
     """
     
-    if os.path.exists(logo_path):
+    if logo_path and os.path.exists(logo_path):
     # Logo mit Seitenverhältnis berechnen
         from reportlab.lib.utils import ImageReader
         img = ImageReader(logo_path)

@@ -101,6 +101,16 @@ export class ApiService {
     return this.http.patch(`${this.API_URL}/tenants/current/`, data);
   }
 
+  uploadLogo(file: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('logo', file);
+    return this.http.post(`${this.API_URL}/tenants/logo/`, formData);
+  }
+
+  deleteLogo(): Observable<any> {
+    return this.http.delete(`${this.API_URL}/tenants/logo/`);
+  }
+
   // ============ CUSTOMERS ============
   getCustomers(params?: { search?: string }): Observable<Customer[]> {
     let httpParams = new HttpParams();

@@ -26,6 +26,34 @@
 
         <mat-card>
           <mat-card-header>
+            <mat-card-title>Logo</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="logo-section">
+              @if (logoUrl()) {
+              <div class="logo-preview">
+                <img [src]="logoUrl()" alt="Firmenlogo">
+                <button mat-icon-button color="warn" (click)="deleteLogo()" [disabled]="uploadingLogo()">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+              } @else {
+              <div class="logo-placeholder">
+                <mat-icon>image</mat-icon>
+                <span>Kein Logo</span>
+              </div>
+              }
+              <input type="file" #fileInput accept="image/*" (change)="onLogoSelected($event)" hidden>
+              <button mat-stroked-button (click)="fileInput.click()" [disabled]="uploadingLogo()">
+                <mat-icon>upload</mat-icon>
+                {{ uploadingLogo() ? 'Lädt...' : 'Logo hochladen' }}
+              </button>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <mat-card>
+          <mat-card-header>
             <mat-card-title>Adresse</mat-card-title>
           </mat-card-header>
           <mat-card-content>
