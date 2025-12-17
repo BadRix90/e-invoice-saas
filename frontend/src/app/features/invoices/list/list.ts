@@ -188,4 +188,22 @@ export class ListComponent implements OnInit {
       });
     }
   }
+
+  validateInvoice(id: number): void {
+    this.snackBar.open('Validiere...', '', { duration: 0 });
+
+    this.apiService.validateInvoice(id).subscribe({
+      next: (result) => {
+        if (result.is_valid) {
+          this.snackBar.open('✓ XRechnung ist valide!', 'OK', { duration: 3000 });
+        } else {
+          const errorMsg = result.errors.length > 0 ? result.errors[0] : 'Validierungsfehler';
+          this.snackBar.open(`✗ ${errorMsg}`, 'OK', { duration: 5000 });
+        }
+      },
+      error: () => {
+        this.snackBar.open('Fehler bei der Validierung', 'OK', { duration: 3000 });
+      }
+    });
+  }
 }

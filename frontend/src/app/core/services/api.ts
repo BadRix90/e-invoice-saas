@@ -212,4 +212,8 @@ export class ApiService {
   deleteInvoiceItem(id: number): Observable<void> {
     return this.http.delete<void>(`${this.API_URL}/invoices/items/${id}/`);
   }
+
+  validateInvoice(id: number): Observable<{ is_valid: boolean; errors: string[]; warnings: string[] }> {
+    return this.http.get<{ is_valid: boolean; errors: string[]; warnings: string[] }>(`${this.API_URL}/invoices/${id}/validate/`);
+  }
 }

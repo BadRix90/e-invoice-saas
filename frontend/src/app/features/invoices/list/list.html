@@ -113,6 +113,12 @@
                 Löschen
               </button>
               }
+              @if (invoice.status !== 'draft') {
+              <button mat-menu-item (click)="validateInvoice(invoice.id)">
+                <mat-icon>verified</mat-icon>
+                Validieren
+              </button>
+              }
             </mat-menu>
           </td>
         </ng-container>

@@ -35,7 +35,7 @@ export class HomeComponent implements OnInit {
     { title: 'Produkte', value: 0, icon: 'inventory_2', color: '#7b1fa2', route: '/dashboard/products' }
   ]);
 
-  constructor(private apiService: ApiService) {}
+  constructor(private apiService: ApiService) { }
 
   ngOnInit(): void {
     this.loadStats();
@@ -44,7 +44,8 @@ export class HomeComponent implements OnInit {
   private loadStats(): void {
     // Kunden zählen
     this.apiService.getCustomers().subscribe({
-      next: (customers) => {
+      next: (data: any) => {
+        const customers = Array.isArray(data) ? data : (data.results || []);
         this.stats.update(stats => stats.map(s =>
           s.title === 'Kunden' ? { ...s, value: customers.length } : s
         ));
@@ -53,7 +54,8 @@ export class HomeComponent implements OnInit {
 
     // Produkte zählen
     this.apiService.getProducts().subscribe({
-      next: (products) => {
+      next: (data: any) => {
+        const products = Array.isArray(data) ? data : (data.results || []);
         this.stats.update(stats => stats.map(s =>
           s.title === 'Produkte' ? { ...s, value: products.length } : s
         ));
@@ -62,9 +64,10 @@ export class HomeComponent implements OnInit {
 
     // Rechnungen zählen
     this.apiService.getInvoices().subscribe({
-      next: (invoices) => {
+      next: (data: any) => {
+        const invoices = Array.isArray(data) ? data : (data.results || []);
         const total = invoices.length;
-        const open = invoices.filter(i => i.status === 'sent' || i.status === 'final').length;
+        const open = invoices.filter((i: any) => i.status === 'sent' || i.status === 'final').length;
         this.stats.update(stats => stats.map(s => {
           if (s.title === 'Rechnungen') return { ...s, value: total };
           if (s.title === 'Offen') return { ...s, value: open };

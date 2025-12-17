@@ -6,12 +6,14 @@ from django_filters.rest_framework import DjangoFilterBackend
 from .models import Invoice, InvoiceItem
 from .serializers import InvoiceSerializer, InvoiceItemSerializer, InvoiceItemCreateSerializer
 from .xrechnung import generate_xrechnung
+from .validator import validate_xrechnung, check_validator_health
 
 
 class InvoiceViewSet(viewsets.ModelViewSet):
     serializer_class = InvoiceSerializer
     permission_classes = [permissions.IsAuthenticated]
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend,
+                       filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['status', 'format', 'customer']
     search_fields = ['invoice_number', 'customer__company_name']
     ordering_fields = ['invoice_number', 'invoice_date', 'created_at']
@@ -34,7 +36,7 @@ class InvoiceViewSet(viewsets.ModelViewSet):
                 {'error': 'Rechnung muss mindestens eine Position haben.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         # Summen berechnen
         invoice.calculate_totals()
         invoice.status = 'final'
@@ -84,16 +86,17 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     def duplicate(self, request, pk=None):
         """Rechnung duplizieren (als neuen Entwurf)"""
         from django.utils import timezone
-        
+
         original = self.get_object()
         today = timezone.now().date()
-        
+
         # Neue Rechnung erstellen
         new_invoice = Invoice.objects.create(
             tenant=original.tenant,
             customer=original.customer,
             invoice_date=today,
-            due_date=today + timezone.timedelta(days=original.customer.payment_terms_days),
+            due_date=today +
+            timezone.timedelta(days=original.customer.payment_terms_days),
             status='draft',
             format=original.format,
             leitweg_id=original.leitweg_id,
@@ -101,7 +104,7 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             notes=original.notes,
             created_by=request.user,
         )
-        
+
         # Positionen kopieren
         for item in original.items.all():
             InvoiceItem.objects.create(
@@ -115,11 +118,11 @@ class InvoiceViewSet(viewsets.ModelViewSet):
                 unit_price=item.unit_price,
                 vat_rate=item.vat_rate,
             )
-        
+
         # Summen berechnen
         new_invoice.calculate_totals()
         new_invoice.save()
-        
+
         return Response(
             InvoiceSerializer(new_invoice).data,
             status=status.HTTP_201_CREATED
@@ -129,25 +132,51 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     def download_xml(self, request, pk=None):
         """XRechnung XML herunterladen"""
         invoice = self.get_object()
-        
+
         if invoice.status == 'draft':
             return Response(
                 {'error': 'Entwürfe können nicht exportiert werden. Bitte zuerst finalisieren.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        
+
         # Summen sicherstellen
         if invoice.total == 0:
             invoice.calculate_totals()
             invoice.save()
-        
+
         # XML generieren
         xml_content = generate_xrechnung(invoice)
-        
+
         # Response mit Download
-        response = HttpResponse(xml_content, content_type='application/xml; charset=utf-8')
+        response = HttpResponse(
+            xml_content, content_type='application/xml; charset=utf-8')
         response['Content-Disposition'] = f'attachment; filename="{invoice.invoice_number}.xml"'
         return response
+
+    @action(detail=True, methods=['get'])
+    def validate(self, request, pk=None):
+        """XRechnung validieren"""
+        invoice = self.get_object()
+
+        if invoice.status == 'draft':
+            return Response(
+                {'error': 'Entwürfe können nicht validiert werden.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        xml_content = generate_xrechnung(invoice)
+        result = validate_xrechnung(xml_content)
+
+        return Response({
+            'is_valid': result.is_valid,
+            'errors': result.errors,
+            'warnings': result.warnings,
+        })
+
+    @action(detail=False, methods=['get'])
+    def validator_status(self, request):
+        """Prüft ob der Validator erreichbar ist"""
+        return Response({'validator_available': check_validator_health()})
 
 
 class InvoiceItemViewSet(viewsets.ModelViewSet):
