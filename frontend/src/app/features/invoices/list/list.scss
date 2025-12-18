@@ -6,15 +6,12 @@
     margin: 0;
     font-size: $font-size-lg;
 
-    @media (min-width: $bp-md) {
+    @include md {
       font-size: $font-size-xl;
     }
   }
 }
 
-// ===========================================
-// HEADER
-// ===========================================
 .list-header {
   display: flex;
   flex-wrap: wrap;
@@ -23,50 +20,43 @@
   gap: $spacing-sm;
   margin-bottom: $spacing-md;
 
-  @media (min-width: $bp-md) {
+  @include md {
     margin-bottom: $spacing-lg;
   }
-}
 
-.header-actions {
-  display: flex;
-  gap: $spacing-sm;
+  .header-actions {
+    display: flex;
+    gap: $spacing-sm;
+  }
 
   .btn-text {
-    @media (max-width: #{$bp-md - 1px}) {
+    @include mobile-only {
       display: none;
     }
   }
 }
 
-// ===========================================
-// SEARCH
-// ===========================================
 .search-field {
   width: 100%;
+  margin-bottom: $spacing-md;
 
-  @media (min-width: $bp-md) {
+  @include md {
     max-width: 400px;
   }
 }
 
-// ===========================================
-// LOADING & EMPTY
-// ===========================================
-.loading-text,
-.empty-text {
-  text-align: center;
-  color: $text-secondary;
-  padding: $spacing-xl;
+.full-width {
+  width: 100%;
 }
 
 // ===========================================
 // RESPONSIVE VISIBILITY
+// Breakpoint verschoben auf 1024px
 // ===========================================
 .mobile-only {
   display: block;
 
-  @media (min-width: $bp-md) {
+  @include lg {
     display: none !important;
   }
 }
@@ -74,51 +64,34 @@
 .desktop-only {
   display: none;
 
-  @media (min-width: $bp-md) {
+  @include lg {
     display: block;
   }
 }
 
 // ===========================================
-// DESKTOP TABLE
+// TABELLE
 // ===========================================
-.table-wrapper {
-  overflow-x: auto;
-}
+::ng-deep {
+  .mat-mdc-table {
+    width: 100%;
+  }
 
-.full-width {
-  width: 100%;
-}
+  .mdc-data-table__content {
+    display: table-row-group !important;
+  }
 
-// Status Chips
-mat-chip.status-draft {
-  background: #e0e0e0 !important;
-  color: #616161 !important;
-}
+  .mdc-data-table__header-row,
+  .mdc-data-table__row {
+    display: table-row !important;
+  }
 
-mat-chip.status-final {
-  background: #bbdefb !important;
-  color: #1565c0 !important;
-}
-
-mat-chip.status-sent {
-  background: #fff3e0 !important;
-  color: #e65100 !important;
-}
-
-mat-chip.status-paid {
-  background: #c8e6c9 !important;
-  color: #2e7d32 !important;
-}
-
-mat-chip.status-cancelled {
-  background: #ffcdd2 !important;
-  color: #c62828 !important;
-}
-
-mat-chip.format-chip {
-  background: #e8eaf6 !important;
-  color: #3949ab !important;
+  .mdc-data-table__header-cell,
+  .mdc-data-table__cell {
+    display: table-cell !important;
+    padding: $spacing-xs $spacing-sm !important;
+    font-size: $font-size-sm;
+  }
 }
 
 .doc-icons {
@@ -135,6 +108,39 @@ mat-chip.format-chip {
       color: $success;
     }
   }
+}
+
+// ===========================================
+// STATUS CHIPS
+// ===========================================
+.status-draft {
+  background: #e0e0e0 !important;
+  color: #616161 !important;
+}
+
+.status-final {
+  background: #e3f2fd !important;
+  color: #1565c0 !important;
+}
+
+.status-sent {
+  background: #fff3e0 !important;
+  color: #e65100 !important;
+}
+
+.status-paid {
+  background: #e8f5e9 !important;
+  color: #2e7d32 !important;
+}
+
+.status-cancelled {
+  background: #ffebee !important;
+  color: #c62828 !important;
+}
+
+.format-chip {
+  background: #f3e5f5 !important;
+  color: #7b1fa2 !important;
 }
 
 // ===========================================
@@ -175,17 +181,15 @@ mat-chip.format-chip {
 
 .status-chip {
   font-size: $font-size-xs !important;
-  height: 24px !important;
+  min-height: 24px !important;
   padding: 0 $spacing-sm !important;
 }
 
 .card-customer {
+  color: $text-secondary;
   font-size: $font-size-sm;
-  color: $text-primary;
   margin-bottom: $spacing-sm;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  @include truncate;
 }
 
 .card-bottom {
@@ -200,8 +204,8 @@ mat-chip.format-chip {
 }
 
 .card-total {
-  font-size: $font-size-base;
   font-weight: 600;
+  font-size: $font-size-base;
   color: $primary;
 }
 
@@ -209,4 +213,8 @@ mat-chip.format-chip {
   position: absolute;
   top: $spacing-sm;
   right: $spacing-xs;
+}
+
+.delete-action {
+  color: $warn !important;
 }

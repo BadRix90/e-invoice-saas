@@ -1,5 +1,6 @@
 @use '@angular/material' as mat;
 @use 'variables' as *;
+@use 'fonts';
 
 // ===========================================
 // ANGULAR MATERIAL THEME
@@ -35,6 +36,13 @@ body {
   background: $background;
   color-scheme: light;
   -webkit-font-smoothing: antialiased;
+}
+
+// ===========================================
+// HEADINGS
+// ===========================================
+h1, h2, h3, h4, h5, h6 {
+  font-family: $font-family-headings;
 }
 
 // ===========================================
