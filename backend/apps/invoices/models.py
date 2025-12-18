@@ -178,3 +178,45 @@ class Reminder(models.Model):
 
     def __str__(self) -> str:
         return f"Mahnung {self.level} - {self.invoice.invoice_number}"
+    
+
+class InvoiceArchive(models.Model):
+    """
+    GoBD-Archiv für Rechnungen.
+    
+    Speichert verschlüsselte Kopien von finalisierten Rechnungen.
+    Diese dürfen NIEMALS gelöscht oder verändert werden (10 Jahre Aufbewahrung).
+    
+    Felder:
+    - invoice: Verknüpfung zur Original-Rechnung
+    - encrypted_data: Das verschlüsselte ZIP (enthält PDF, XML, Metadata)
+    - data_hash: SHA-256 Hash zur Integritätsprüfung
+    - file_size: Größe der unverschlüsselten Daten in Bytes
+    - created_at: Wann wurde archiviert
+    """
+    
+    invoice = models.OneToOneField(
+        Invoice,
+        on_delete=models.PROTECT,  # PROTECT = Rechnung kann nicht gelöscht werden!
+        related_name='archive',
+    )
+    
+    # Verschlüsselte Daten (kann sehr groß sein, daher BinaryField)
+    encrypted_data = models.BinaryField()
+    
+    # SHA-256 Hash (64 Zeichen)
+    data_hash = models.CharField(max_length=64)
+    
+    # Dateigröße in Bytes (für Statistiken)
+    file_size = models.PositiveIntegerField(default=0)
+    
+    # Zeitstempel
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        db_table = 'invoice_archives'
+        verbose_name = 'Rechnungsarchiv'
+        verbose_name_plural = 'Rechnungsarchive'
+    
+    def __str__(self):
+        return f"Archiv: {self.invoice.invoice_number}"

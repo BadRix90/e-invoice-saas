@@ -34,7 +34,7 @@ import { ApiService, Invoice } from '../../../core/services/api';
 export class ListComponent implements OnInit {
   invoices = signal<Invoice[]>([]);
   isLoading = signal(true);
-  displayedColumns = ['invoice_number', 'customer_name', 'invoice_date', 'total', 'status', 'format', 'actions'];
+  displayedColumns = ['invoice_number', 'customer_name', 'invoice_date', 'total', 'status', 'format', 'documents', 'actions'];
 
   constructor(
     private apiService: ApiService,
@@ -125,6 +125,7 @@ export class ListComponent implements OnInit {
         a.click();
         window.URL.revokeObjectURL(url);
         this.snackBar.open('PDF heruntergeladen', 'OK', { duration: 2000 });
+        this.loadInvoices();
       },
       error: () => {
         this.snackBar.open('Fehler beim PDF-Download', 'OK', { duration: 3000 });
@@ -149,6 +150,7 @@ export class ListComponent implements OnInit {
         a.click();
         window.URL.revokeObjectURL(url);
         this.snackBar.open('XML heruntergeladen', 'OK', { duration: 2000 });
+        this.loadInvoices();
       },
       error: (err) => {
         console.error('Download error:', err);
@@ -266,6 +268,51 @@ export class ListComponent implements OnInit {
       error: (err) => {
         const msg = err.error?.error || 'Fehler beim Mahnung-Versand';
         this.snackBar.open(msg, 'OK', { duration: 3000 });
+      }
+    });
+  }
+
+  archiveInvoice(id: number): void {
+    if (!confirm('Rechnung GoBD-konform archivieren?')) return;
+
+    this.apiService.archiveInvoice(id).subscribe({
+      next: (res) => {
+        this.snackBar.open('Rechnung archiviert', 'OK', { duration: 3000 });
+        this.loadInvoices();
+      },
+      error: (err) => {
+        this.snackBar.open(err.error?.error || 'Fehler beim Archivieren', 'OK', { duration: 5000 });
+      }
+    });
+  }
+
+  verifyArchive(id: number): void {
+    this.apiService.verifyArchive(id).subscribe({
+      next: (res) => {
+        if (res.success) {
+          this.snackBar.open('✓ Archiv ist intakt', 'OK', { duration: 3000 });
+        } else {
+          this.snackBar.open('⚠ Archiv-Prüfung fehlgeschlagen!', 'OK', { duration: 5000 });
+        }
+      },
+      error: (err) => {
+        this.snackBar.open('Prüfung fehlgeschlagen: ' + (err.error?.error || 'Unbekannter Fehler'), 'OK', { duration: 5000 });
+      }
+    });
+  }
+
+  downloadArchive(id: number): void {
+    this.apiService.downloadArchive(id).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `archiv_${id}.zip`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: () => {
+        this.snackBar.open('Download fehlgeschlagen', 'OK', { duration: 3000 });
       }
     });
   }

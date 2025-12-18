@@ -63,6 +63,17 @@
           </td>
         </ng-container>
 
+        <ng-container matColumnDef="documents">
+          <th mat-header-cell *matHeaderCellDef>Dokumente</th>
+          <td mat-cell *matCellDef="let invoice">
+            <div class="doc-icons">
+              <mat-icon [class.active]="invoice.has_pdf" matTooltip="PDF">picture_as_pdf</mat-icon>
+              <mat-icon [class.active]="invoice.has_xml" matTooltip="XML">code</mat-icon>
+              <mat-icon [class.active]="invoice.is_archived" matTooltip="Archiviert">archive</mat-icon>
+            </div>
+          </td>
+        </ng-container>
+
         <ng-container matColumnDef="actions">
           <th mat-header-cell *matHeaderCellDef>Aktionen</th>
           <td mat-cell *matCellDef="let invoice">
@@ -97,6 +108,22 @@
               <button mat-menu-item (click)="sendReminder(invoice.id)">
                 <mat-icon>notification_important</mat-icon>
                 Mahnung senden
+              </button>
+              }
+              @if (!invoice.archived_at) {
+              <button mat-menu-item (click)="archiveInvoice(invoice.id)">
+                <mat-icon>archive</mat-icon>
+                Archivieren (GoBD)
+              </button>
+              }
+              @if (invoice.archived_at) {
+              <button mat-menu-item (click)="verifyArchive(invoice.id)">
+                <mat-icon>verified</mat-icon>
+                Archiv prüfen
+              </button>
+              <button mat-menu-item (click)="downloadArchive(invoice.id)">
+                <mat-icon>download</mat-icon>
+                Archiv herunterladen
               </button>
               }
               @if (invoice.status === 'sent' || invoice.status === 'final') {

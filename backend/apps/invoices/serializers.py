@@ -31,6 +31,9 @@ class InvoiceSerializer(serializers.ModelSerializer):
     created_by_name = serializers.SerializerMethodField()
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     format_display = serializers.CharField(source='get_format_display', read_only=True)
+    has_pdf = serializers.SerializerMethodField()
+    has_xml = serializers.SerializerMethodField()
+    is_archived = serializers.SerializerMethodField()
 
     class Meta:
         model = Invoice
@@ -57,6 +60,11 @@ class InvoiceSerializer(serializers.ModelSerializer):
             'created_by_name',
             'created_at',
             'updated_at',
+            'archived_at',
+            'archive_hash',
+            'has_pdf',
+            'has_xml',
+            'is_archived',
         ]
         read_only_fields = [
             'id', 'invoice_number', 'subtotal', 'tax_amount', 'total',
@@ -67,6 +75,15 @@ class InvoiceSerializer(serializers.ModelSerializer):
         if obj.created_by:
             return obj.created_by.get_full_name() or obj.created_by.username
         return ''
+    
+    def get_has_pdf(self, obj) -> bool:
+        return bool(obj.pdf_file)
+
+    def get_has_xml(self, obj) -> bool:
+        return bool(obj.xml_file)
+
+    def get_is_archived(self, obj) -> bool:
+        return obj.archived_at is not None
 
     def create(self, validated_data):
         tenant = self.context['request'].user.tenant

@@ -11,6 +11,7 @@ from .zugferd import generate_zugferd_pdf
 from .email import send_invoice_email
 from datetime import date
 from .datev import generate_datev_simple
+from .archive import archive_invoice, verify_archive, download_archive
 
 
 class InvoiceViewSet(viewsets.ModelViewSet):
@@ -238,6 +239,8 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'])
     def download_xml(self, request, pk=None):
         """XRechnung XML herunterladen"""
+        from django.core.files.base import ContentFile
+
         invoice = self.get_object()
 
         if invoice.status == 'draft':
@@ -246,23 +249,29 @@ class InvoiceViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Summen sicherstellen
         if invoice.total == 0:
             invoice.calculate_totals()
             invoice.save()
 
-        # XML generieren
         xml_content = generate_xrechnung(invoice)
 
-        # Response mit Download
-        response = HttpResponse(
-            xml_content, content_type='application/xml; charset=utf-8')
+        # XML in Datenbank speichern
+        if not invoice.xml_file:
+            invoice.xml_file.save(
+                f"{invoice.invoice_number}.xml",
+                ContentFile(xml_content.encode('utf-8')),
+                save=True
+            )
+
+        response = HttpResponse(xml_content, content_type='application/xml; charset=utf-8')
         response['Content-Disposition'] = f'attachment; filename="{invoice.invoice_number}.xml"'
         return response
 
     @action(detail=True, methods=['get'])
     def download_pdf(self, request, pk=None):
         """ZUGFeRD PDF herunterladen"""
+        from django.core.files.base import ContentFile
+
         invoice = self.get_object()
 
         if invoice.status == 'draft':
@@ -273,6 +282,14 @@ class InvoiceViewSet(viewsets.ModelViewSet):
 
         invoice.calculate_totals()
         pdf_content = generate_zugferd_pdf(invoice)
+
+        # PDF in Datenbank speichern
+        if not invoice.pdf_file:
+            invoice.pdf_file.save(
+                f"{invoice.invoice_number}.pdf",
+                ContentFile(pdf_content),
+                save=True
+            )
 
         response = HttpResponse(pdf_content, content_type='application/pdf')
         response['Content-Disposition'] = f'attachment; filename="{invoice.invoice_number}.pdf"'
@@ -392,6 +409,69 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         })
 
 
+    @action(detail=True, methods=['post'])
+    def archive(self, request, pk=None):
+        
+        invoice = self.get_object()
+        
+        try:
+            result = archive_invoice(invoice)
+            return Response({
+                'success': True,
+                'message': f'Rechnung {invoice.invoice_number} wurde archiviert.',
+                'archive': result,
+            })
+        except ValueError as e:
+            return Response({
+                'success': False,
+                'error': str(e),
+            }, status=400)
+        except Exception as e:
+            return Response({
+                'success': False,
+                'error': f'Archivierung fehlgeschlagen: {str(e)}',
+            }, status=500)
+
+    @action(detail=True, methods=['get'])
+    def verify(self, request, pk=None):
+        invoice = self.get_object()
+        result = verify_archive(invoice)
+        
+        if result['valid']:
+            return Response({
+                'success': True,
+                'message': 'Archiv ist intakt.',
+                'details': result,
+            })
+        else:
+            return Response({
+                'success': False,
+                'message': 'Archiv-Prüfung fehlgeschlagen!',
+                'details': result,
+            }, status=400)
+
+    @action(detail=True, methods=['get'])
+    def download_archive(self, request, pk=None):
+        invoice = self.get_object()
+        
+        if not invoice.archived_at:
+            return Response({
+                'success': False,
+                'error': 'Rechnung ist nicht archiviert.',
+            }, status=400)
+
+        zip_data = download_archive(invoice)
+        
+        if zip_data is None:
+            return Response({
+                'success': False,
+                'error': 'Archiv konnte nicht geladen werden.',
+            }, status=500)
+
+        response = HttpResponse(zip_data, content_type='application/zip')
+        response['Content-Disposition'] = f'attachment; filename="archiv_{invoice.invoice_number}.zip"'
+        return response
+
 class InvoiceItemViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     filter_backends = [DjangoFilterBackend]
@@ -408,19 +488,16 @@ class InvoiceItemViewSet(viewsets.ModelViewSet):
         )
 
     def perform_create(self, serializer):
-        """Nach dem Erstellen: Rechnungssummen aktualisieren"""
         item = serializer.save()
         item.invoice.calculate_totals()
         item.invoice.save()
 
     def perform_update(self, serializer):
-        """Nach dem Update: Rechnungssummen aktualisieren"""
         item = serializer.save()
         item.invoice.calculate_totals()
         item.invoice.save()
 
     def perform_destroy(self, instance):
-        """Nach dem Löschen: Rechnungssummen aktualisieren"""
         invoice = instance.invoice
         instance.delete()
         invoice.calculate_totals()

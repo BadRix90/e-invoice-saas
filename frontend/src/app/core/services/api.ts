@@ -308,5 +308,20 @@ export class ApiService {
   validateInvoice(id: number): Observable<{ is_valid: boolean; errors: string[]; warnings: string[] }> {
     return this.http.get<{ is_valid: boolean; errors: string[]; warnings: string[] }>(`${this.API_URL}/invoices/${id}/validate/`);
   }
+
+  // GoBD Archivierung
+  archiveInvoice(id: number): Observable<any> {
+    return this.http.post(`${this.API_URL}/invoices/${id}/archive/`, {});
+  }
+
+  verifyArchive(id: number): Observable<any> {
+    return this.http.get(`${this.API_URL}/invoices/${id}/verify/`);
+  }
+
+  downloadArchive(id: number): Observable<Blob> {
+    return this.http.get(`${this.API_URL}/invoices/${id}/download_archive/`, {
+      responseType: 'blob'
+    });
+  }
 }
 

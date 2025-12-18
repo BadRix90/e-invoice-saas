@@ -54,3 +54,19 @@ mat-chip.format-chip {
   background: #e8eaf6 !important;
   color: #3949ab !important;
 }
+
+.doc-icons {
+  display: flex;
+  gap: 4px;
+
+  mat-icon {
+    font-size: 18px;
+    width: 18px;
+    height: 18px;
+    color: #ccc;
+
+    &.active {
+      color: #4caf50;
+    }
+  }
+}
