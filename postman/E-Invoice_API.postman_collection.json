@@ -1,0 +1,216 @@
+{
+  "info": {
+    "name": "E-Invoice API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.environment.set('token', jsonData.access);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"admin\",\n    \"password\": \"password\"\n}"
+            },
+            "url": "{{base_url}}/auth/token/"
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"refresh\": \"{{refresh_token}}\"\n}"
+            },
+            "url": "{{base_url}}/auth/token/refresh/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Invoices",
+      "item": [
+        {
+          "name": "Get All",
+          "request": {
+            "auth": {"type": "bearer", "bearer": {"token": "{{token}}"}},
+            "method": "GET",
+            "url": "{{base_url}}/invoices/"
+          }
+        },
+        {
+          "name": "Get Single",
+          "request": {
+            "auth": {"type": "bearer", "bearer": {"token": "{{token}}"}},
+            "method": "GET",
+            "url": "{{base_url}}/invoices/1/"
+          }
+        },
+        {
+          "name": "Dashboard Stats",
+          "request": {
+            "auth": {"type": "bearer", "bearer": {"token": "{{token}}"}},
+            "method": "GET",
+            "url": "{{base_url}}/invoices/dashboard_stats/"
+          }
+        },
+        {
+          "name": "Archive",
+          "request": {
+            "auth": {"type": "bearer", "bearer": {"token": "{{token}}"}},
+            "method": "POST",
+            "url": "{{base_url}}/invoices/1/archive/"
+          }
+        },
+        {
+          "name": "Verify Archive",
+          "request": {
+            "auth": {"type": "bearer", "bearer": {"token": "{{token}}"}},
+            "method": "GET",
+            "url": "{{base_url}}/invoices/1/verify/"
+          }
+        },
+        {
+          "name": "Download PDF",
+          "request": {
+            "auth": {"type": "bearer", "bearer": {"token": "{{token}}"}},
+            "method": "GET",
+            "url": "{{base_url}}/invoices/1/download_pdf/"
+          }
+        },
+        {
+          "name": "Download XML",
+          "request": {
+            "auth": {"type": "bearer", "bearer": {"token": "{{token}}"}},
+            "method": "GET",
+            "url": "{{base_url}}/invoices/1/download_xml/"
+          }
+        },
+        {
+          "name": "Finalize",
+          "request": {
+            "auth": {"type": "bearer", "bearer": {"token": "{{token}}"}},
+            "method": "POST",
+            "url": "{{base_url}}/invoices/1/finalize/"
+          }
+        },
+        {
+          "name": "Mark Paid",
+          "request": {
+            "auth": {"type": "bearer", "bearer": {"token": "{{token}}"}},
+            "method": "POST",
+            "url": "{{base_url}}/invoices/1/mark_paid/"
+          }
+        },
+        {
+          "name": "DATEV Export",
+          "request": {
+            "auth": {"type": "bearer", "bearer": {"token": "{{token}}"}},
+            "method": "GET",
+            "url": "{{base_url}}/invoices/export_datev/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Customers",
+      "item": [
+        {
+          "name": "Get All",
+          "request": {
+            "auth": {"type": "bearer", "bearer": {"token": "{{token}}"}},
+            "method": "GET",
+            "url": "{{base_url}}/customers/"
+          }
+        },
+        {
+          "name": "Get Single",
+          "request": {
+            "auth": {"type": "bearer", "bearer": {"token": "{{token}}"}},
+            "method": "GET",
+            "url": "{{base_url}}/customers/1/"
+          }
+        },
+        {
+          "name": "Create",
+          "request": {
+            "auth": {"type": "bearer", "bearer": {"token": "{{token}}"}},
+            "method": "POST",
+            "header": [{"key": "Content-Type", "value": "application/json"}],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"customer_number\": \"K-002\",\n    \"company_name\": \"Test GmbH\",\n    \"street\": \"Teststr. 1\",\n    \"zip_code\": \"12345\",\n    \"city\": \"Berlin\",\n    \"email\": \"test@example.com\"\n}"
+            },
+            "url": "{{base_url}}/customers/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Products",
+      "item": [
+        {
+          "name": "Get All",
+          "request": {
+            "auth": {"type": "bearer", "bearer": {"token": "{{token}}"}},
+            "method": "GET",
+            "url": "{{base_url}}/products/"
+          }
+        },
+        {
+          "name": "Get Single",
+          "request": {
+            "auth": {"type": "bearer", "bearer": {"token": "{{token}}"}},
+            "method": "GET",
+            "url": "{{base_url}}/products/1/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tenant",
+      "item": [
+        {
+          "name": "Get Current",
+          "request": {
+            "auth": {"type": "bearer", "bearer": {"token": "{{token}}"}},
+            "method": "GET",
+            "url": "{{base_url}}/tenants/current/"
+          }
+        },
+        {
+          "name": "Upload Logo",
+          "request": {
+            "auth": {"type": "bearer", "bearer": {"token": "{{token}}"}},
+            "method": "POST",
+            "body": {
+              "mode": "formdata",
+              "formdata": [{"key": "logo", "type": "file", "src": ""}]
+            },
+            "url": "{{base_url}}/tenants/logo/"
+          }
+        }
+      ]
+    }
+  ]
+}

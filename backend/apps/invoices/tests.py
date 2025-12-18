@@ -106,3 +106,46 @@ class TestInvoiceArchive:
         
         with pytest.raises(ValueError, match="bereits archiviert"):
             archive_invoice(invoice)
+            
+class TestInvoiceAPI:
+    def test_list_invoices(self, api_client, invoice):
+        response = api_client.get("/api/invoices/")
+        assert response.status_code == 200
+        assert response.data["count"] == 1
+
+    def test_get_invoice(self, api_client, invoice):
+        response = api_client.get(f"/api/invoices/{invoice.id}/")
+        assert response.status_code == 200
+        assert response.data["invoice_number"] == "RE-2025-0001"
+
+    def test_finalize_invoice(self, api_client, invoice_with_items):
+        response = api_client.post(f"/api/invoices/{invoice_with_items.id}/finalize/")
+        assert response.status_code == 200
+        assert response.data["status"] == "final"
+
+    def test_finalize_empty_invoice_fails(self, api_client, invoice):
+        response = api_client.post(f"/api/invoices/{invoice.id}/finalize/")
+        assert response.status_code == 400
+
+    def test_mark_paid(self, api_client, finalized_invoice):
+        response = api_client.post(f"/api/invoices/{finalized_invoice.id}/mark_paid/")
+        assert response.status_code == 200
+        assert response.data["status"] == "paid"
+
+    def test_dashboard_stats(self, api_client, invoice):
+        response = api_client.get("/api/invoices/dashboard_stats/")
+        assert response.status_code == 200
+        assert "total_invoices" in response.data
+
+    def test_archive_invoice(self, api_client, finalized_invoice):
+        response = api_client.post(f"/api/invoices/{finalized_invoice.id}/archive/")
+        assert response.status_code == 200
+        assert response.data["success"] is True
+
+    def test_verify_archive(self, api_client, finalized_invoice):
+        # Erst archivieren
+        api_client.post(f"/api/invoices/{finalized_invoice.id}/archive/")
+        # Dann verifizieren
+        response = api_client.get(f"/api/invoices/{finalized_invoice.id}/verify/")
+        assert response.status_code == 200
+        assert response.data["success"] is True
