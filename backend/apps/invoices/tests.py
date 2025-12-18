@@ -1,3 +1,108 @@
-from django.test import TestCase
+import pytest
+from decimal import Decimal
+from django.utils import timezone
+from apps.users.models import User, Tenant
+from apps.customers.models import Customer
+from apps.invoices.models import Invoice, InvoiceItem
 
-# Create your tests here.
+
+@pytest.fixture
+def tenant(db):
+    return Tenant.objects.create(
+        name="Test GmbH",
+        slug="test-gmbh",
+    )
+
+
+@pytest.fixture
+def user(db, tenant):
+    return User.objects.create_user(
+        username="testuser",
+        email="test@example.com",
+        password="testpass123",
+        tenant=tenant,
+    )
+
+
+@pytest.fixture
+def customer(db, tenant):
+    return Customer.objects.create(
+        tenant=tenant,
+        customer_number="K-001",
+        company_name="Kunde GmbH",
+        email="kunde@example.com",
+        street="Teststraße 1",
+        zip_code="12345",
+        city="Berlin",
+        country="DE",
+    )
+
+
+@pytest.fixture
+def invoice(db, tenant, customer, user):
+    return Invoice.objects.create(
+        tenant=tenant,
+        invoice_number="RE-2025-0001",
+        customer=customer,
+        invoice_date=timezone.now().date(),
+        due_date=timezone.now().date(),
+        status="draft",
+        format="xrechnung",
+        created_by=user,
+    )
+
+
+class TestInvoiceModel:
+    def test_create_invoice(self, invoice):
+        assert invoice.id is not None
+        assert invoice.status == "draft"
+
+    def test_invoice_number(self, invoice):
+        assert invoice.invoice_number == "RE-2025-0001"
+
+    def test_calculate_totals(self, invoice):
+        InvoiceItem.objects.create(
+            invoice=invoice,
+            description="Test Position",
+            quantity=Decimal("2"),
+            unit_price=Decimal("100.00"),
+            vat_rate=Decimal("19.00"),
+        )
+        invoice.calculate_totals()
+        
+        assert invoice.subtotal == Decimal("200.00")
+        assert invoice.tax_amount == Decimal("38.00")
+        assert invoice.total == Decimal("238.00")
+
+
+class TestInvoiceArchive:
+    def test_archive_draft_fails(self, invoice):
+        from apps.invoices.archive import archive_invoice
+        
+        with pytest.raises(ValueError, match="Entwürfe"):
+            archive_invoice(invoice)
+
+    def test_archive_finalized_invoice(self, invoice):
+        from apps.invoices.archive import archive_invoice, verify_archive
+        
+        invoice.status = "final"
+        invoice.save()
+        
+        result = archive_invoice(invoice)
+        
+        assert result["hash"] is not None
+        assert invoice.archived_at is not None
+        
+        verify_result = verify_archive(invoice)
+        assert verify_result["valid"] is True
+
+    def test_archive_twice_fails(self, invoice):
+        from apps.invoices.archive import archive_invoice
+        
+        invoice.status = "final"
+        invoice.save()
+        
+        archive_invoice(invoice)
+        
+        with pytest.raises(ValueError, match="bereits archiviert"):
+            archive_invoice(invoice)
