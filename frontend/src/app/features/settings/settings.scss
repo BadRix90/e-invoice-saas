@@ -1,34 +1,64 @@
+@use "../../../styles/variables" as *;
+@use "../../../styles/mixins" as *;
+
+// Tab-Body Scrollbar entfernen
+::ng-deep .mat-mdc-tab-body-content {
+  overflow: hidden !important;
+}
+
 .settings-container {
-  padding: 24px;
+  padding: $spacing-md;
   max-width: 800px;
   margin: 0 auto;
 
+  @media (min-width: $bp-md) {
+    padding: $spacing-lg;
+  }
+
   h1 {
-    margin-bottom: 24px;
+    margin-bottom: $spacing-md;
+    font-size: $font-size-lg;
+
+    @media (min-width: $bp-md) {
+      margin-bottom: $spacing-lg;
+      font-size: $font-size-xl;
+    }
   }
 }
 
 .settings-form {
-  padding-top: 24px;
+  padding-top: $spacing-md;
+
+  @media (min-width: $bp-md) {
+    padding-top: $spacing-lg;
+  }
 
   mat-card {
-    margin-bottom: 16px;
+    margin-bottom: $spacing-md;
   }
 
   mat-card-content {
-    padding-top: 16px;
+    padding-top: $spacing-md;
   }
 
   .form-row {
     display: flex;
-    gap: 16px;
+    flex-direction: column;
+    gap: $spacing-md;
+
+    @media (min-width: $bp-md) {
+      flex-direction: row;
+    }
 
     mat-form-field {
       flex: 1;
+      width: 100%;
     }
 
     .flex-2 {
-      flex: 2;
+      @media (min-width: $bp-md) {
+        flex: 2;
+      }
     }
   }
 
@@ -38,32 +68,51 @@
 
   .logo-section {
     display: flex;
-    align-items: center;
-    gap: 24px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: $spacing-md;
+
+    @media (min-width: $bp-md) {
+      flex-direction: row;
+      align-items: center;
+      gap: $spacing-lg;
+    }
 
     .logo-preview {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: $spacing-sm;
 
       img {
-        max-width: 150px;
-        max-height: 60px;
+        max-width: 120px;
+        max-height: 50px;
         object-fit: contain;
-        border: 1px solid #e0e0e0;
-        border-radius: 4px;
-        padding: 8px;
+        border: 1px solid $border;
+        border-radius: $border-radius-sm;
+        padding: $spacing-sm;
+
+        @media (min-width: $bp-md) {
+          max-width: 150px;
+          max-height: 60px;
+        }
       }
     }
 
     .logo-placeholder {
       display: flex;
       align-items: center;
-      gap: 8px;
-      color: #999;
-      padding: 16px 24px;
-      border: 2px dashed #e0e0e0;
-      border-radius: 4px;
+      gap: $spacing-sm;
+      color: $text-secondary;
+      padding: $spacing-md;
+      border: 2px dashed $border;
+      border-radius: $border-radius-sm;
+      width: 100%;
+      justify-content: center;
+
+      @media (min-width: $bp-md) {
+        width: auto;
+        padding: $spacing-md $spacing-lg;
+      }
 
       mat-icon {
         font-size: 32px;
@@ -75,11 +124,26 @@
 
   .form-actions {
     display: flex;
-    justify-content: flex-end;
-    margin-top: 24px;
+    flex-direction: column-reverse;
+    gap: $spacing-sm;
+    margin-top: $spacing-lg;
 
-    button mat-icon {
-      margin-right: 8px;
+    @media (min-width: $bp-md) {
+      flex-direction: row;
+      justify-content: flex-end;
+      gap: $spacing-md;
+    }
+
+    button {
+      width: 100%;
+
+      @media (min-width: $bp-md) {
+        width: auto;
+      }
+
+      mat-icon {
+        margin-right: $spacing-sm;
+      }
     }
   }
 }

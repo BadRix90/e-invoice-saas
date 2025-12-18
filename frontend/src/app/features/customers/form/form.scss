@@ -1,26 +1,43 @@
+@use "../../../../styles/variables" as *;
+@use "../../../../styles/mixins" as *;
+
 .form-container {
   max-width: 800px;
   margin: 0 auto;
 }
 
 mat-card-header {
-  margin-bottom: 1.5rem;
+  margin-bottom: $spacing-lg;
+
+  @media (max-width: #{$bp-md - 1px}) {
+    margin-bottom: $spacing-md;
+  }
 }
 
 .customer-type-selection {
-  margin-bottom: 1.5rem;
-  padding: 1rem;
-  background: #f5f5f5;
-  border-radius: 8px;
+  margin-bottom: $spacing-lg;
+  padding: $spacing-md;
+  background: $background;
+  border-radius: $border-radius;
+
+  @media (max-width: #{$bp-md - 1px}) {
+    margin-bottom: $spacing-md;
+    padding: $spacing-sm;
+  }
 
   mat-radio-group {
     display: flex;
-    gap: 2rem;
+    gap: $spacing-lg;
+
+    @media (max-width: #{$bp-md - 1px}) {
+      flex-direction: column;
+      gap: $spacing-sm;
+    }
   }
 }
 
 .form-row {
-  margin-bottom: 0.5rem;
+  margin-bottom: $spacing-sm;
 
   mat-form-field {
     width: 100%;
@@ -29,31 +46,57 @@ mat-card-header {
 
 .two-cols {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  grid-template-columns: 1fr;
+  gap: $spacing-md;
+
+  @media (min-width: $bp-md) {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 .three-cols {
   display: grid;
-  grid-template-columns: 120px 1fr;
-  gap: 1rem;
+  grid-template-columns: 1fr;
+  gap: $spacing-md;
+
+  @media (min-width: $bp-md) {
+    grid-template-columns: 120px 1fr;
+  }
 }
 
 h3 {
-  margin: 1.5rem 0 1rem;
-  color: #666;
-  font-size: 1rem;
+  margin: $spacing-lg 0 $spacing-md;
+  color: $text-secondary;
+  font-size: $font-size-base;
+
+  @media (max-width: #{$bp-md - 1px}) {
+    margin: $spacing-md 0 $spacing-sm;
+    font-size: $font-size-sm;
+  }
 }
 
 mat-divider {
-  margin: 1.5rem 0;
+  margin: $spacing-lg 0;
+
+  @media (max-width: #{$bp-md - 1px}) {
+    margin: $spacing-md 0;
+  }
 }
 
 .form-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 1rem;
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  gap: $spacing-md;
+  margin-top: $spacing-lg;
+  padding-top: $spacing-lg;
+  border-top: 1px solid $border;
+
+  @media (max-width: #{$bp-md - 1px}) {
+    flex-direction: column-reverse;
+    gap: $spacing-sm;
+
+    button {
+      width: 100%;
+    }
+  }
 }

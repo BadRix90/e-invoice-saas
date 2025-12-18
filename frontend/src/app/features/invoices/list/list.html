@@ -1,14 +1,16 @@
 <div class="list-container">
   <div class="list-header">
     <h1>Rechnungen</h1>
-    <button mat-raised-button color="primary" routerLink="new">
-      <mat-icon>add</mat-icon>
-      Neue Rechnung
-    </button>
-    <button mat-stroked-button (click)="exportDatev()">
-      <mat-icon>download</mat-icon>
-      DATEV Export
-    </button>
+    <div class="header-actions">
+      <button mat-raised-button color="primary" routerLink="new">
+        <mat-icon>add</mat-icon>
+        <span class="btn-text">Neue Rechnung</span>
+      </button>
+      <button mat-stroked-button (click)="exportDatev()" class="desktop-only">
+        <mat-icon>download</mat-icon>
+        DATEV Export
+      </button>
+    </div>
   </div>
 
   <mat-card>
@@ -24,154 +26,189 @@
       } @else if (invoices().length === 0) {
       <p>Keine Rechnungen vorhanden.</p>
       } @else {
-      <table mat-table [dataSource]="invoices()" class="full-width">
-        <ng-container matColumnDef="invoice_number">
-          <th mat-header-cell *matHeaderCellDef>Rechnungs-Nr.</th>
-          <td mat-cell *matCellDef="let invoice">{{ invoice.invoice_number }}</td>
-        </ng-container>
 
-        <ng-container matColumnDef="customer_name">
-          <th mat-header-cell *matHeaderCellDef>Kunde</th>
-          <td mat-cell *matCellDef="let invoice">{{ invoice.customer_name }}</td>
-        </ng-container>
+      <!-- Desktop: Tabelle -->
+      <div class="desktop-only">
+        <table mat-table [dataSource]="invoices()" class="full-width">
+          <ng-container matColumnDef="invoice_number">
+            <th mat-header-cell *matHeaderCellDef>Rechnungs-Nr.</th>
+            <td mat-cell *matCellDef="let invoice">{{ invoice.invoice_number }}</td>
+          </ng-container>
 
-        <ng-container matColumnDef="invoice_date">
-          <th mat-header-cell *matHeaderCellDef>Datum</th>
-          <td mat-cell *matCellDef="let invoice">{{ formatDate(invoice.invoice_date) }}</td>
-        </ng-container>
+          <ng-container matColumnDef="customer_name">
+            <th mat-header-cell *matHeaderCellDef>Kunde</th>
+            <td mat-cell *matCellDef="let invoice">{{ invoice.customer_name }}</td>
+          </ng-container>
 
-        <ng-container matColumnDef="total">
-          <th mat-header-cell *matHeaderCellDef>Betrag</th>
-          <td mat-cell *matCellDef="let invoice">{{ formatPrice(invoice.total) }}</td>
-        </ng-container>
+          <ng-container matColumnDef="invoice_date">
+            <th mat-header-cell *matHeaderCellDef>Datum</th>
+            <td mat-cell *matCellDef="let invoice">{{ formatDate(invoice.invoice_date) }}</td>
+          </ng-container>
 
-        <ng-container matColumnDef="status">
-          <th mat-header-cell *matHeaderCellDef>Status</th>
-          <td mat-cell *matCellDef="let invoice">
-            <mat-chip [class]="getStatusClass(invoice.status)">
-              {{ invoice.status_display }}
-            </mat-chip>
-          </td>
-        </ng-container>
+          <ng-container matColumnDef="total">
+            <th mat-header-cell *matHeaderCellDef>Betrag</th>
+            <td mat-cell *matCellDef="let invoice">{{ formatPrice(invoice.total) }}</td>
+          </ng-container>
 
-        <ng-container matColumnDef="format">
-          <th mat-header-cell *matHeaderCellDef>Format</th>
-          <td mat-cell *matCellDef="let invoice">
-            <mat-chip class="format-chip">
-              {{ invoice.format === 'xrechnung' ? 'XRechnung' : 'ZUGFeRD' }}
-            </mat-chip>
-          </td>
-        </ng-container>
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>Status</th>
+            <td mat-cell *matCellDef="let invoice">
+              <mat-chip [class]="getStatusClass(invoice.status)">
+                {{ invoice.status_display }}
+              </mat-chip>
+            </td>
+          </ng-container>
 
-        <ng-container matColumnDef="documents">
-          <th mat-header-cell *matHeaderCellDef>Dokumente</th>
-          <td mat-cell *matCellDef="let invoice">
-            <div class="doc-icons">
-              <mat-icon [class.active]="invoice.has_pdf" matTooltip="PDF">picture_as_pdf</mat-icon>
-              <mat-icon [class.active]="invoice.has_xml" matTooltip="XML">code</mat-icon>
-              <mat-icon [class.active]="invoice.is_archived" matTooltip="Archiviert">archive</mat-icon>
+          <ng-container matColumnDef="format">
+            <th mat-header-cell *matHeaderCellDef>Format</th>
+            <td mat-cell *matCellDef="let invoice">
+              <mat-chip class="format-chip">
+                {{ invoice.format === 'xrechnung' ? 'XRechnung' : 'ZUGFeRD' }}
+              </mat-chip>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="documents">
+            <th mat-header-cell *matHeaderCellDef>Dokumente</th>
+            <td mat-cell *matCellDef="let invoice">
+              <div class="doc-icons">
+                <mat-icon [class.active]="invoice.has_pdf" matTooltip="PDF">picture_as_pdf</mat-icon>
+                <mat-icon [class.active]="invoice.has_xml" matTooltip="XML">code</mat-icon>
+                <mat-icon [class.active]="invoice.is_archived" matTooltip="Archiviert">archive</mat-icon>
+              </div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Aktionen</th>
+            <td mat-cell *matCellDef="let invoice">
+              <button mat-icon-button [routerLink]="[invoice.id]" matTooltip="Bearbeiten">
+                <mat-icon>edit</mat-icon>
+              </button>
+              <button mat-icon-button [matMenuTriggerFor]="desktopMenu">
+                <mat-icon>more_vert</mat-icon>
+              </button>
+              <mat-menu #desktopMenu="matMenu">
+                <ng-container *ngTemplateOutlet="menuContent; context: { $implicit: invoice }"></ng-container>
+              </mat-menu>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+      </div>
+
+      <!-- Mobile: Cards -->
+      <div class="card-list mobile-only">
+        @for (invoice of invoices(); track invoice.id) {
+          <div class="invoice-card" [routerLink]="[invoice.id]">
+            <div class="card-top">
+              <span class="invoice-nr">{{ invoice.invoice_number }}</span>
+              <mat-chip [class]="getStatusClass(invoice.status)" class="status-chip">
+                {{ invoice.status_display }}
+              </mat-chip>
             </div>
-          </td>
-        </ng-container>
-
-        <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef>Aktionen</th>
-          <td mat-cell *matCellDef="let invoice">
-            <button mat-icon-button [routerLink]="[invoice.id]" matTooltip="Bearbeiten">
-              <mat-icon>edit</mat-icon>
-            </button>
-            <button mat-icon-button [matMenuTriggerFor]="actionsMenu">
+            <div class="card-customer">{{ invoice.customer_name }}</div>
+            <div class="card-bottom">
+              <span class="card-date">{{ formatDate(invoice.invoice_date) }}</span>
+              <span class="card-total">{{ formatPrice(invoice.total) }}</span>
+            </div>
+            <button mat-icon-button class="card-menu" [matMenuTriggerFor]="mobileMenu" (click)="$event.stopPropagation()">
               <mat-icon>more_vert</mat-icon>
             </button>
-            <mat-menu #actionsMenu="matMenu">
-              @if (invoice.status === 'draft') {
-              <button mat-menu-item (click)="finalizeInvoice(invoice.id)">
-                <mat-icon>check_circle</mat-icon>
-                Finalisieren
-              </button>
-              }
-              @if (invoice.status === 'final') {
-              <button mat-menu-item (click)="markSent(invoice.id)">
-                <mat-icon>send</mat-icon>
-                Als versendet markieren
-              </button>
-              <button mat-menu-item (click)="sendEmail(invoice.id)">
-                <mat-icon>email</mat-icon>
-                Per E-Mail versenden
-              </button>
-              }
-              @if (invoice.status === 'sent') {
-              <button mat-menu-item (click)="sendEmail(invoice.id)">
-                <mat-icon>email</mat-icon>
-                Erneut per E-Mail senden
-              </button>
-              <button mat-menu-item (click)="sendReminder(invoice.id)">
-                <mat-icon>notification_important</mat-icon>
-                Mahnung senden
-              </button>
-              }
-              @if (!invoice.archived_at) {
-              <button mat-menu-item (click)="archiveInvoice(invoice.id)">
-                <mat-icon>archive</mat-icon>
-                Archivieren (GoBD)
-              </button>
-              }
-              @if (invoice.archived_at) {
-              <button mat-menu-item (click)="verifyArchive(invoice.id)">
-                <mat-icon>verified</mat-icon>
-                Archiv prüfen
-              </button>
-              <button mat-menu-item (click)="downloadArchive(invoice.id)">
-                <mat-icon>download</mat-icon>
-                Archiv herunterladen
-              </button>
-              }
-              @if (invoice.status === 'sent' || invoice.status === 'final') {
-              <button mat-menu-item (click)="markPaid(invoice.id)">
-                <mat-icon>paid</mat-icon>
-                Als bezahlt markieren
-              </button>
-              }
-              <button mat-menu-item (click)="duplicateInvoice(invoice.id)">
-                <mat-icon>content_copy</mat-icon>
-                Duplizieren
-              </button>
-              @if (invoice.status !== 'draft') {
-              <button mat-menu-item (click)="downloadXml(invoice.id)">
-                <mat-icon>code</mat-icon>
-                XML herunterladen
-              </button>
-              <button mat-menu-item (click)="downloadPdf(invoice.id)">
-                <mat-icon>picture_as_pdf</mat-icon>
-                PDF herunterladen
-              </button>
-              }
-              @if (invoice.status !== 'cancelled') {
-              <button mat-menu-item (click)="cancelInvoice(invoice.id)" class="delete-action">
-                <mat-icon color="warn">cancel</mat-icon>
-                Stornieren
-              </button>
-              }
-              @if (invoice.status === 'draft') {
-              <button mat-menu-item (click)="deleteInvoice(invoice.id)" class="delete-action">
-                <mat-icon color="warn">delete</mat-icon>
-                Löschen
-              </button>
-              }
-              @if (invoice.status !== 'draft') {
-              <button mat-menu-item (click)="validateInvoice(invoice.id)">
-                <mat-icon>verified</mat-icon>
-                Validieren
-              </button>
-              }
+            <mat-menu #mobileMenu="matMenu">
+              <ng-container *ngTemplateOutlet="menuContent; context: { $implicit: invoice }"></ng-container>
             </mat-menu>
-          </td>
-        </ng-container>
+          </div>
+        }
+      </div>
 
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-      </table>
       }
     </mat-card-content>
   </mat-card>
 </div>
+
+<!-- Gemeinsames Menü-Template -->
+<ng-template #menuContent let-invoice>
+  @if (invoice.status === 'draft') {
+  <button mat-menu-item (click)="finalizeInvoice(invoice.id)">
+    <mat-icon>check_circle</mat-icon>
+    Finalisieren
+  </button>
+  }
+  @if (invoice.status === 'final') {
+  <button mat-menu-item (click)="markSent(invoice.id)">
+    <mat-icon>send</mat-icon>
+    Als versendet markieren
+  </button>
+  <button mat-menu-item (click)="sendEmail(invoice.id)">
+    <mat-icon>email</mat-icon>
+    Per E-Mail versenden
+  </button>
+  }
+  @if (invoice.status === 'sent') {
+  <button mat-menu-item (click)="sendEmail(invoice.id)">
+    <mat-icon>email</mat-icon>
+    Erneut per E-Mail senden
+  </button>
+  <button mat-menu-item (click)="sendReminder(invoice.id)">
+    <mat-icon>notification_important</mat-icon>
+    Mahnung senden
+  </button>
+  }
+  @if (!invoice.is_archived) {
+  <button mat-menu-item (click)="archiveInvoice(invoice.id)">
+    <mat-icon>archive</mat-icon>
+    Archivieren (GoBD)
+  </button>
+  }
+  @if (invoice.is_archived) {
+  <button mat-menu-item (click)="verifyArchive(invoice.id)">
+    <mat-icon>verified</mat-icon>
+    Archiv prüfen
+  </button>
+  <button mat-menu-item (click)="downloadArchive(invoice.id)">
+    <mat-icon>download</mat-icon>
+    Archiv herunterladen
+  </button>
+  }
+  @if (invoice.status === 'sent' || invoice.status === 'final') {
+  <button mat-menu-item (click)="markPaid(invoice.id)">
+    <mat-icon>paid</mat-icon>
+    Als bezahlt markieren
+  </button>
+  }
+  <button mat-menu-item (click)="duplicateInvoice(invoice.id)">
+    <mat-icon>content_copy</mat-icon>
+    Duplizieren
+  </button>
+  @if (invoice.status !== 'draft') {
+  <button mat-menu-item (click)="downloadXml(invoice.id)">
+    <mat-icon>code</mat-icon>
+    XML herunterladen
+  </button>
+  <button mat-menu-item (click)="downloadPdf(invoice.id)">
+    <mat-icon>picture_as_pdf</mat-icon>
+    PDF herunterladen
+  </button>
+  }
+  @if (invoice.status !== 'cancelled') {
+  <button mat-menu-item (click)="cancelInvoice(invoice.id)" class="delete-action">
+    <mat-icon color="warn">cancel</mat-icon>
+    Stornieren
+  </button>
+  }
+  @if (invoice.status === 'draft') {
+  <button mat-menu-item (click)="deleteInvoice(invoice.id)" class="delete-action">
+    <mat-icon color="warn">delete</mat-icon>
+    Löschen
+  </button>
+  }
+  @if (invoice.status !== 'draft') {
+  <button mat-menu-item (click)="validateInvoice(invoice.id)">
+    <mat-icon>verified</mat-icon>
+    Validieren
+  </button>
+  }
+</ng-template>

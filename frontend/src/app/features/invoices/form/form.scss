@@ -1,21 +1,30 @@
+@use "../../../../styles/variables" as *;
+@use "../../../../styles/mixins" as *;
+
 .form-container {
   max-width: 1000px;
   margin: 0 auto;
 }
 
 mat-card-header {
-  margin-bottom: 1rem;
+  margin-bottom: $spacing-md;
 }
 
 .section {
-  margin: 1.5rem 0;
+  margin: $spacing-lg 0;
+
+  @media (max-width: #{$bp-md - 1px}) {
+    margin: $spacing-md 0;
+  }
 }
 
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-md;
 
   h3 {
     margin: 0;
@@ -23,20 +32,20 @@ mat-card-header {
 }
 
 h3 {
-  margin: 0 0 1rem;
-  color: #666;
-  font-size: 1rem;
+  margin: 0 0 $spacing-md;
+  color: $text-secondary;
+  font-size: $font-size-base;
   font-weight: 500;
 }
 
 h4 {
-  margin: 0 0 0.5rem;
-  font-size: 0.9rem;
-  color: #666;
+  margin: 0 0 $spacing-sm;
+  font-size: $font-size-sm;
+  color: $text-secondary;
 }
 
 .form-row {
-  margin-bottom: 0.5rem;
+  margin-bottom: $spacing-sm;
 
   mat-form-field {
     width: 100%;
@@ -45,25 +54,35 @@ h4 {
 
 .two-cols {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
+  grid-template-columns: 1fr;
+  gap: $spacing-md;
+
+  @media (min-width: $bp-md) {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 mat-divider {
-  margin: 1.5rem 0;
+  margin: $spacing-lg 0;
+
+  @media (max-width: #{$bp-md - 1px}) {
+    margin: $spacing-md 0;
+  }
 }
 
-// Positionen als Karten
+// ===========================================
+// POSITIONEN
+// ===========================================
 .items-list {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: $spacing-md;
 }
 
 .item-card {
-  background: #fafafa;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
+  background: $background;
+  border: 1px solid $border;
+  border-radius: $border-radius;
   overflow: hidden;
 }
 
@@ -71,68 +90,111 @@ mat-divider {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.75rem 1rem;
-  background: #f0f0f0;
-  border-bottom: 1px solid #e0e0e0;
+  padding: $spacing-sm $spacing-md;
+  background: darken($background, 3%);
+  border-bottom: 1px solid $border;
 
   .item-position {
     font-weight: 500;
-    color: #666;
+    color: $text-secondary;
+    font-size: $font-size-sm;
   }
 }
 
 .item-content {
-  padding: 1rem;
+  padding: $spacing-md;
+
+  @media (max-width: #{$bp-md - 1px}) {
+    padding: $spacing-sm;
+  }
 }
 
 .item-row {
   display: flex;
-  gap: 1rem;
+  gap: $spacing-md;
   align-items: flex-start;
+
+  @media (max-width: #{$bp-md - 1px}) {
+    flex-direction: column;
+    gap: $spacing-sm;
+  }
 
   mat-form-field {
     flex: 1;
+
+    @media (max-width: #{$bp-md - 1px}) {
+      width: 100%;
+    }
   }
 
   .product-select {
     flex: 2;
+
+    @media (max-width: #{$bp-md - 1px}) {
+      flex: 1;
+      width: 100%;
+    }
   }
 }
 
 .item-details {
   display: flex;
-  gap: 1.5rem;
-  margin-top: 1rem;
-  padding: 1rem;
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
+  flex-wrap: wrap;
+  gap: $spacing-md;
+  margin-top: $spacing-md;
+  padding: $spacing-md;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $border-radius-sm;
+
+  @media (max-width: #{$bp-md - 1px}) {
+    gap: $spacing-sm;
+    padding: $spacing-sm;
+  }
 
   .detail {
     display: flex;
     flex-direction: column;
-    gap: 0.25rem;
+    gap: $spacing-xs;
+
+    @media (max-width: #{$bp-md - 1px}) {
+      flex: 1 1 45%;
+    }
 
     .detail-label {
-      font-size: 0.75rem;
-      color: #666;
+      font-size: $font-size-xs;
+      color: $text-secondary;
       text-transform: uppercase;
     }
 
     .detail-value {
-      font-size: 1rem;
+      font-size: $font-size-base;
       font-weight: 500;
+
+      @media (max-width: #{$bp-md - 1px}) {
+        font-size: $font-size-sm;
+      }
     }
 
     &.line-total {
       margin-left: auto;
-      padding: 0.5rem 1rem;
+      padding: $spacing-sm $spacing-md;
       background: #e3f2fd;
-      border-radius: 4px;
+      border-radius: $border-radius-sm;
+
+      @media (max-width: #{$bp-md - 1px}) {
+        flex: 1 1 100%;
+        margin-left: 0;
+        margin-top: $spacing-xs;
+      }
 
       .detail-value {
-        font-size: 1.2rem;
-        color: #1976d2;
+        font-size: $font-size-lg;
+        color: $primary;
+
+        @media (max-width: #{$bp-md - 1px}) {
+          font-size: $font-size-base;
+        }
       }
     }
   }
@@ -141,12 +203,13 @@ mat-divider {
 .item-placeholder {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  margin-top: 1rem;
-  padding: 1rem;
+  gap: $spacing-sm;
+  margin-top: $spacing-md;
+  padding: $spacing-md;
   background: #fff3e0;
-  border-radius: 4px;
+  border-radius: $border-radius-sm;
   color: #e65100;
+  font-size: $font-size-sm;
 
   mat-icon {
     font-size: 20px;
@@ -157,106 +220,108 @@ mat-divider {
 
 .no-items {
   text-align: center;
-  padding: 2rem;
-  background: #fafafa;
-  border: 2px dashed #e0e0e0;
-  border-radius: 8px;
+  padding: $spacing-xl;
+  background: $background;
+  border: 2px dashed $border;
+  border-radius: $border-radius;
+
+  @media (max-width: #{$bp-md - 1px}) {
+    padding: $spacing-lg;
+  }
 
   p {
-    color: #666;
-    margin-bottom: 1rem;
+    color: $text-secondary;
+    margin-bottom: $spacing-md;
   }
 }
 
-// Summen
+// ===========================================
+// SUMMEN
+// ===========================================
 .totals-section {
   .totals {
     display: flex;
     justify-content: flex-end;
-    gap: 2rem;
+    gap: $spacing-lg;
+
+    @media (max-width: #{$bp-md - 1px}) {
+      flex-direction: column;
+      gap: $spacing-md;
+    }
   }
 }
 
 .vat-summary {
-  padding: 1rem;
-  background: #f5f5f5;
-  border-radius: 8px;
+  padding: $spacing-md;
+  background: $background;
+  border-radius: $border-radius;
+
+  @media (max-width: #{$bp-md - 1px}) {
+    padding: $spacing-sm;
+  }
 
   .vat-row {
     display: grid;
-    grid-template-columns: auto 100px auto 100px;
-    gap: 0.5rem;
-    padding: 0.25rem 0;
-    font-size: 0.9rem;
+    grid-template-columns: auto 80px auto 80px;
+    gap: $spacing-sm;
+    padding: $spacing-xs 0;
+    font-size: $font-size-sm;
+
+    @media (max-width: #{$bp-md - 1px}) {
+      grid-template-columns: 1fr 1fr;
+      font-size: $font-size-xs;
+    }
   }
 }
 
 .total-summary {
   width: 280px;
-  padding: 1rem;
+  padding: $spacing-md;
   background: #e3f2fd;
-  border-radius: 8px;
+  border-radius: $border-radius;
+
+  @media (max-width: #{$bp-md - 1px}) {
+    width: 100%;
+    padding: $spacing-sm;
+  }
 
   .total-row {
     display: flex;
     justify-content: space-between;
-    padding: 0.5rem 0;
+    padding: $spacing-sm 0;
+    font-size: $font-size-sm;
 
     &.grand-total {
-      margin-top: 0.5rem;
-      padding-top: 0.75rem;
+      margin-top: $spacing-sm;
+      padding-top: $spacing-sm;
       border-top: 2px solid rgba(0, 0, 0, 0.12);
       font-weight: 600;
-      font-size: 1.2rem;
+      font-size: $font-size-lg;
+
+      @media (max-width: #{$bp-md - 1px}) {
+        font-size: $font-size-base;
+      }
     }
   }
 }
 
+// ===========================================
+// ACTIONS
+// ===========================================
 .form-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 1rem;
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid rgba(0, 0, 0, 0.12);
-}
+  gap: $spacing-md;
+  margin-top: $spacing-lg;
+  padding-top: $spacing-lg;
+  border-top: 1px solid $border;
 
-@media (max-width: 768px) {
-  .two-cols {
-    grid-template-columns: 1fr;
-  }
+  @media (max-width: #{$bp-md - 1px}) {
+    flex-direction: column-reverse;
+    gap: $spacing-sm;
 
-  .item-row {
-    flex-wrap: wrap;
-
-    mat-form-field {
-      flex: 1 1 100%;
+    button {
+      width: 100%;
     }
-
-    .product-select {
-      flex: 1 1 100%;
-    }
-  }
-
-  .item-details {
-    flex-wrap: wrap;
-
-    .detail {
-      flex: 1 1 45%;
-    }
-
-    .detail.line-total {
-      flex: 1 1 100%;
-      margin-left: 0;
-      margin-top: 0.5rem;
-    }
-  }
-
-  .totals-section .totals {
-    flex-direction: column;
-  }
-
-  .total-summary {
-    width: 100%;
   }
 }

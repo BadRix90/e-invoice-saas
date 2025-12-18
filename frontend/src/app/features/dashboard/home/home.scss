@@ -1,26 +1,47 @@
+@use "../../../../styles/variables" as *;
+@use "../../../../styles/mixins" as *;
+
 .home-container {
   h1 {
-    margin-bottom: 1.5rem;
-    color: #333;
+    margin-bottom: $spacing-lg;
+    color: $text-primary;
+    font-size: $font-size-lg;
+
+    @include md {
+      font-size: $font-size-xl;
+    }
   }
 
   h2 {
-    margin-bottom: 1rem;
-    color: #333;
+    margin-bottom: $spacing-md;
+    color: $text-primary;
+    font-size: $font-size-base;
+
+    @include md {
+      font-size: $font-size-lg;
+    }
   }
 }
 
 .loading {
   display: flex;
   justify-content: center;
-  padding: 3rem;
+  padding: $spacing-xl;
 }
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  grid-template-columns: 1fr;
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+
+  @include sm {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @include lg {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 .stat-card {
@@ -29,106 +50,163 @@
 
   &:hover {
     transform: translateY(-4px);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+    box-shadow: $shadow-lg;
   }
 
   mat-card-content {
     display: flex;
     align-items: center;
-    gap: 1rem;
-    padding: 1.5rem;
+    gap: $spacing-md;
+    padding: $spacing-md;
+
+    @include md {
+      padding: $spacing-lg;
+    }
   }
 }
 
 .stat-icon {
-  width: 56px;
-  height: 56px;
-  border-radius: 12px;
+  width: 48px;
+  height: 48px;
+  border-radius: $border-radius;
   display: flex;
   align-items: center;
   justify-content: center;
 
-  mat-icon {
-    color: white;
-    font-size: 28px;
-    width: 28px;
-    height: 28px;
+  @include md {
+    width: 56px;
+    height: 56px;
   }
 
-  &.blue { background: #1976d2; }
-  &.orange { background: #f57c00; }
-  &.green { background: #388e3c; }
-  &.red { background: #d32f2f; }
-  &.grey { background: #757575; }
+  mat-icon {
+    color: white;
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+
+    @include md {
+      font-size: 28px;
+      width: 28px;
+      height: 28px;
+    }
+  }
+
+  &.blue { background: $primary; }
+  &.orange { background: $accent; }
+  &.green { background: $success; }
+  &.red { background: $warn; }
+  &.grey { background: $text-secondary; }
 }
 
 .stat-info {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
 .stat-value {
-  font-size: 2rem;
+  font-size: $font-size-xl;
   font-weight: 600;
   line-height: 1;
+
+  @include md {
+    font-size: $font-size-xxl;
+  }
 }
 
 .stat-title {
-  color: #666;
-  margin-top: 0.25rem;
+  color: $text-secondary;
+  margin-top: $spacing-xs;
+  font-size: $font-size-sm;
 }
 
 .stat-sub {
-  color: #999;
-  font-size: 0.85rem;
-  margin-top: 0.25rem;
+  color: $text-secondary;
+  font-size: $font-size-xs;
+  margin-top: $spacing-xs;
 }
 
 .actions-section {
-  margin-bottom: 2rem;
+  margin-bottom: $spacing-lg;
 }
 
 .actions-grid {
   display: flex;
-  gap: 1rem;
+  gap: $spacing-sm;
   flex-wrap: wrap;
 
-  button mat-icon {
-    margin-right: 0.5rem;
+  @include md {
+    gap: $spacing-md;
+  }
+
+  button {
+    font-size: $font-size-sm;
+
+    mat-icon {
+      margin-right: $spacing-xs;
+
+      @include mobile-only {
+        margin-right: 0;
+      }
+    }
+
+    // Text auf Mobile verstecken
+    span {
+      @include mobile-only {
+        display: none;
+      }
+    }
   }
 }
 
 .revenue-section {
-  margin-top: 2rem;
+  margin-top: $spacing-lg;
 }
 
 .revenue-bars {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $spacing-sm;
+
+  @include sm {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @include md {
+    grid-template-columns: repeat(6, 1fr);
+    gap: $spacing-md;
+  }
 }
 
 .revenue-bar {
-  background: #f5f5f5;
-  border-radius: 8px;
-  padding: 1rem;
+  background: $background;
+  border-radius: $border-radius;
+  padding: $spacing-sm;
   text-align: center;
 
+  @include md {
+    padding: $spacing-md;
+  }
+
   .bar-label {
-    font-size: 0.85rem;
-    color: #666;
-    margin-bottom: 0.5rem;
+    font-size: $font-size-xs;
+    color: $text-secondary;
+    margin-bottom: $spacing-xs;
   }
 
   .bar-value {
-    font-size: 1.1rem;
+    font-size: $font-size-sm;
     font-weight: 600;
-    color: #388e3c;
+    color: $success;
+
+    @include md {
+      font-size: $font-size-base;
+    }
   }
 
   .bar-count {
-    font-size: 0.75rem;
-    color: #999;
-    margin-top: 0.25rem;
+    font-size: $font-size-xs;
+    color: $text-secondary;
+    margin-top: $spacing-xs;
   }
 }

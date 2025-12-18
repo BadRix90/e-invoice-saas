@@ -1,8 +1,14 @@
 <mat-sidenav-container class="dashboard-container">
-  <mat-sidenav mode="side" opened class="sidenav">
-    <div class="logo">
+  <!-- Sidenav: nur Desktop -->
+  <mat-sidenav
+    #sidenav
+    [mode]="isMobile ? 'over' : 'side'"
+    [opened]="!isMobile"
+    class="sidenav">
+
+    <div class="sidenav-header">
       <img src="images/factora.png" alt="Factora" class="logo-image">
-      <p>by NovaDev Edge</p>
+      <span class="logo-text">by NovaDev Edge</span>
     </div>
 
     <mat-nav-list>
@@ -18,7 +24,11 @@
     </mat-nav-list>
 
     <div class="sidenav-footer">
-      <button mat-button (click)="logout()">
+      <a mat-list-item routerLink="/dashboard/settings" routerLinkActive="active">
+        <mat-icon matListItemIcon>settings</mat-icon>
+        <span matListItemTitle>Einstellungen</span>
+      </a>
+      <button mat-button (click)="logout()" class="logout-btn">
         <mat-icon>logout</mat-icon>
         Abmelden
       </button>
@@ -26,11 +36,49 @@
   </mat-sidenav>
 
   <mat-sidenav-content class="content">
-    <mat-toolbar color="primary">
+    <!-- Toolbar -->
+    <mat-toolbar color="primary" class="toolbar">
+      <!-- Logo links -->
+      <img src="images/factora.png" alt="Factora" class="toolbar-logo">
+
+      <span class="spacer"></span>
+
+      <!-- Desktop: Seitentitel -->
+      <span class="page-title desktop-only">{{ currentPageTitle }}</span>
+
+      <span class="spacer desktop-only"></span>
+
+      <!-- Mobile: Burger rechts -->
+      <button mat-icon-button [matMenuTriggerFor]="mobileMenu" class="mobile-only">
+        <mat-icon>menu</mat-icon>
+      </button>
+
+      <mat-menu #mobileMenu="matMenu">
+        <button mat-menu-item routerLink="/dashboard/settings">
+          <mat-icon>settings</mat-icon>
+        </button>
+        <button mat-menu-item (click)="logout()">
+          <mat-icon>logout</mat-icon>
+        </button>
+      </mat-menu>
     </mat-toolbar>
 
+    <!-- Main Content -->
     <main class="main-content">
       <router-outlet></router-outlet>
     </main>
+
+    <!-- Mobile: Bottom Navigation -->
+    <nav class="bottom-nav mobile-only">
+      @for (item of bottomNavItems; track item.route) {
+        <a [routerLink]="item.route"
+           routerLinkActive="active"
+           [routerLinkActiveOptions]="{ exact: item.route === '/dashboard' }"
+           class="nav-item">
+          <mat-icon>{{ item.icon }}</mat-icon>
+          <span>{{ item.label }}</span>
+        </a>
+      }
+    </nav>
   </mat-sidenav-content>
 </mat-sidenav-container>

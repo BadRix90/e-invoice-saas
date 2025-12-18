@@ -1,36 +1,131 @@
+@use "../../../../styles/variables" as *;
+@use "../../../../styles/mixins" as *;
+
 .list-container {
   h1 {
     margin: 0;
+    font-size: $font-size-lg;
+
+    @media (min-width: $bp-md) {
+      font-size: $font-size-xl;
+    }
   }
 }
 
 .list-header {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-md;
 
-  button mat-icon {
-    margin-right: 0.5rem;
+  @media (min-width: $bp-md) {
+    margin-bottom: $spacing-lg;
+  }
+
+  .btn-text {
+    @media (max-width: #{$bp-md - 1px}) {
+      display: none;
+    }
   }
 }
 
 .search-field {
   width: 100%;
-  max-width: 400px;
-  margin-bottom: 1rem;
+
+  @media (min-width: $bp-md) {
+    max-width: 400px;
+  }
 }
 
 .full-width {
   width: 100%;
 }
 
+// ===========================================
+// RESPONSIVE VISIBILITY
+// ===========================================
+.mobile-only {
+  display: block;
+
+  @media (min-width: $bp-md) {
+    display: none !important;
+  }
+}
+
+.desktop-only {
+  display: none;
+
+  @media (min-width: $bp-md) {
+    display: block;
+  }
+}
+
+// ===========================================
+// DESKTOP TABLE
+// ===========================================
 table {
   th.mat-header-cell {
     font-weight: 600;
   }
 
   td.mat-cell {
-    padding: 0.75rem 1rem;
+    padding: $spacing-sm $spacing-md;
   }
+}
+
+// ===========================================
+// MOBILE CARDS
+// ===========================================
+.card-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.customer-card {
+  position: relative;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $border-radius;
+  padding: $spacing-md;
+  padding-right: 48px;
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+
+  &:active {
+    box-shadow: $shadow-md;
+  }
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-xs;
+}
+
+.customer-nr {
+  font-size: $font-size-xs;
+  color: $text-secondary;
+}
+
+.card-name {
+  font-weight: 600;
+  font-size: $font-size-base;
+  margin-bottom: $spacing-xs;
+}
+
+.card-info {
+  font-size: $font-size-sm;
+  color: $text-secondary;
+}
+
+.card-actions {
+  position: absolute;
+  top: $spacing-sm;
+  right: $spacing-xs;
+  display: flex;
+  flex-direction: column;
 }

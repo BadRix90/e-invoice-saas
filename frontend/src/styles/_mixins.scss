@@ -1,0 +1,100 @@
+@use "variables" as *;
+
+// ===========================================
+// BREAKPOINTS (Mobile First)
+// ===========================================
+@mixin sm {
+  @media (min-width: $bp-sm) { @content; }
+}
+
+@mixin md {
+  @media (min-width: $bp-md) { @content; }
+}
+
+@mixin lg {
+  @media (min-width: $bp-lg) { @content; }
+}
+
+@mixin xl {
+  @media (min-width: $bp-xl) { @content; }
+}
+
+@mixin mobile-only {
+  @media (max-width: #{$bp-md - 1px}) { @content; }
+}
+
+// ===========================================
+// FLEXBOX
+// ===========================================
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+// ===========================================
+// TEXT
+// ===========================================
+@mixin truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@mixin heading-1 {
+  font-size: $font-size-xl;
+  font-weight: 600;
+  @include md { font-size: $font-size-xxl; }
+}
+
+@mixin heading-2 {
+  font-size: $font-size-lg;
+  font-weight: 600;
+  @include md { font-size: $font-size-xl; }
+}
+
+// ===========================================
+// VISIBILITY
+// ===========================================
+@mixin hide-mobile {
+  display: none;
+  @include md { display: block; }
+}
+
+@mixin hide-mobile-flex {
+  display: none;
+  @include md { display: flex; }
+}
+
+@mixin show-mobile-only {
+  display: block;
+  @include md { display: none; }
+}
+
+// ===========================================
+// COMPONENTS
+// ===========================================
+@mixin card {
+  background: $surface;
+  border-radius: $border-radius;
+  box-shadow: $shadow-sm;
+  padding: $spacing-md;
+}
+
+@mixin button-reset {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}

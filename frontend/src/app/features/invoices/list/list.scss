@@ -1,30 +1,96 @@
+@use "../../../../styles/variables" as *;
+@use "../../../../styles/mixins" as *;
+
 .list-container {
   h1 {
     margin: 0;
+    font-size: $font-size-lg;
+
+    @media (min-width: $bp-md) {
+      font-size: $font-size-xl;
+    }
   }
 }
 
+// ===========================================
+// HEADER
+// ===========================================
 .list-header {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-md;
 
-  button mat-icon {
-    margin-right: 0.5rem;
+  @media (min-width: $bp-md) {
+    margin-bottom: $spacing-lg;
   }
 }
 
+.header-actions {
+  display: flex;
+  gap: $spacing-sm;
+
+  .btn-text {
+    @media (max-width: #{$bp-md - 1px}) {
+      display: none;
+    }
+  }
+}
+
+// ===========================================
+// SEARCH
+// ===========================================
 .search-field {
   width: 100%;
-  max-width: 400px;
-  margin-bottom: 1rem;
+
+  @media (min-width: $bp-md) {
+    max-width: 400px;
+  }
+}
+
+// ===========================================
+// LOADING & EMPTY
+// ===========================================
+.loading-text,
+.empty-text {
+  text-align: center;
+  color: $text-secondary;
+  padding: $spacing-xl;
+}
+
+// ===========================================
+// RESPONSIVE VISIBILITY
+// ===========================================
+.mobile-only {
+  display: block;
+
+  @media (min-width: $bp-md) {
+    display: none !important;
+  }
+}
+
+.desktop-only {
+  display: none;
+
+  @media (min-width: $bp-md) {
+    display: block;
+  }
+}
+
+// ===========================================
+// DESKTOP TABLE
+// ===========================================
+.table-wrapper {
+  overflow-x: auto;
 }
 
 .full-width {
   width: 100%;
 }
 
+// Status Chips
 mat-chip.status-draft {
   background: #e0e0e0 !important;
   color: #616161 !important;
@@ -57,16 +123,90 @@ mat-chip.format-chip {
 
 .doc-icons {
   display: flex;
-  gap: 4px;
+  gap: $spacing-xs;
 
   mat-icon {
     font-size: 18px;
     width: 18px;
     height: 18px;
-    color: #ccc;
+    color: $border;
 
     &.active {
-      color: #4caf50;
+      color: $success;
     }
   }
+}
+
+// ===========================================
+// MOBILE CARDS
+// ===========================================
+.card-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.invoice-card {
+  position: relative;
+  background: $surface;
+  border: 1px solid $border;
+  border-radius: $border-radius;
+  padding: $spacing-md;
+  padding-right: 48px;
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+
+  &:active {
+    box-shadow: $shadow-md;
+  }
+}
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: $spacing-xs;
+}
+
+.invoice-nr {
+  font-weight: 600;
+  font-size: $font-size-sm;
+}
+
+.status-chip {
+  font-size: $font-size-xs !important;
+  height: 24px !important;
+  padding: 0 $spacing-sm !important;
+}
+
+.card-customer {
+  font-size: $font-size-sm;
+  color: $text-primary;
+  margin-bottom: $spacing-sm;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-date {
+  font-size: $font-size-xs;
+  color: $text-secondary;
+}
+
+.card-total {
+  font-size: $font-size-base;
+  font-weight: 600;
+  color: $primary;
+}
+
+.card-menu {
+  position: absolute;
+  top: $spacing-sm;
+  right: $spacing-xs;
 }

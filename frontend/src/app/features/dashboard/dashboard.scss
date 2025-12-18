@@ -1,58 +1,118 @@
+@use "../../../styles/variables" as *;
+@use "../../../styles/mixins" as *;
+
 .dashboard-container {
   height: 100vh;
 }
 
+// ===========================================
+// SIDENAV (nur Desktop)
+// ===========================================
 .sidenav {
-  width: 250px;
+  width: $sidenav-width;
   display: flex;
   flex-direction: column;
+  background: $surface;
 }
 
-.logo {
-  padding: 16px;
+.sidenav-header {
+  padding: $spacing-md;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid $border;
 
   .logo-image {
-    max-width: 160px;
-    max-height: 100px;
+    max-width: 140px;
+    max-height: 80px;
     object-fit: contain;
   }
 
-  p {
-    margin: 8px 0 0 0;
-    font-size: 12px;
-    color: #666;
+  .logo-text {
+    margin-top: $spacing-sm;
+    font-size: $font-size-xs;
+    color: $text-secondary;
   }
 }
 
 mat-nav-list {
   flex: 1;
-  padding-top: 0.5rem;
+  padding-top: $spacing-sm;
 
-  a.active {
-    background: rgba(25, 118, 210, 0.1);
-    color: #1976d2;
+  a {
+    margin: 0 $spacing-sm;
+    border-radius: $border-radius-sm;
 
-    mat-icon {
-      color: #1976d2;
+    &.active {
+      background: rgba($primary, 0.1);
+      color: $primary;
+
+      mat-icon {
+        color: $primary;
+      }
     }
   }
 }
 
 .sidenav-footer {
-  padding: 1rem;
-  border-top: 1px solid rgba(0, 0, 0, 0.12);
+  padding: $spacing-sm;
+  border-top: 1px solid $border;
 
-  button {
+  .logout-btn {
     width: 100%;
     justify-content: flex-start;
+    margin-top: $spacing-xs;
   }
 }
 
+// ===========================================
+// TOOLBAR
+// ===========================================
+.toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.toolbar-logo {
+  height: 32px;
+
+  @media (min-width: $bp-md) {
+    display: none;
+  }
+}
+
+.page-title {
+  font-size: $font-size-lg;
+  font-weight: 500;
+}
+
+.spacer {
+  flex: 1;
+}
+
+// ===========================================
+// RESPONSIVE VISIBILITY
+// ===========================================
+.mobile-only {
+  display: flex;
+
+  @media (min-width: $bp-md) {
+    display: none !important;
+  }
+}
+
+.desktop-only {
+  display: none;
+
+  @media (min-width: $bp-md) {
+    display: flex;
+  }
+}
+
+// ===========================================
+// CONTENT
+// ===========================================
 .content {
   display: flex;
   flex-direction: column;
@@ -60,7 +120,61 @@ mat-nav-list {
 
 .main-content {
   flex: 1;
-  padding: 1.5rem;
-  background: #f5f5f5;
+  padding: $spacing-md;
+  padding-bottom: calc($spacing-md + 64px); // Platz für Bottom Nav
+  background: $background;
   overflow-y: auto;
+
+  @media (min-width: $bp-md) {
+    padding: $spacing-lg;
+    padding-bottom: $spacing-lg;
+  }
+}
+
+// ===========================================
+// BOTTOM NAVIGATION (nur Mobile)
+// ===========================================
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: $surface;
+  border-top: 1px solid $border;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 100;
+
+  @media (min-width: $bp-md) {
+    display: none !important;
+  }
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: $text-secondary;
+  padding: $spacing-xs $spacing-sm;
+  min-width: 64px;
+  transition: color 0.2s;
+
+  mat-icon {
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+  }
+
+  span {
+    font-size: $font-size-xs;
+    margin-top: 2px;
+  }
+
+  &.active {
+    color: $primary;
+  }
 }
