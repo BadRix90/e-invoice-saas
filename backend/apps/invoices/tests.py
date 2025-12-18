@@ -149,3 +149,80 @@ class TestInvoiceAPI:
         response = api_client.get(f"/api/invoices/{finalized_invoice.id}/verify/")
         assert response.status_code == 200
         assert response.data["success"] is True
+        
+class TestXRechnungGenerator:
+    def test_generate_xrechnung(self, finalized_invoice):
+        from apps.invoices.xrechnung import generate_xrechnung
+        
+        xml_content = generate_xrechnung(finalized_invoice)
+        
+        # Prüfe ob XML generiert wurde
+        assert xml_content is not None
+        assert len(xml_content) > 0
+        
+        # Prüfe ob es gültiges XML ist
+        assert '<?xml version' in xml_content
+        assert 'Invoice' in xml_content
+
+    def test_xrechnung_contains_invoice_number(self, finalized_invoice):
+        from apps.invoices.xrechnung import generate_xrechnung
+        
+        xml_content = generate_xrechnung(finalized_invoice)
+        
+        assert finalized_invoice.invoice_number in xml_content
+
+    def test_xrechnung_contains_customer(self, finalized_invoice):
+        from apps.invoices.xrechnung import generate_xrechnung
+        
+        xml_content = generate_xrechnung(finalized_invoice)
+        
+        assert finalized_invoice.customer.company_name in xml_content
+
+    def test_xrechnung_contains_total(self, finalized_invoice):
+        from apps.invoices.xrechnung import generate_xrechnung
+        
+        xml_content = generate_xrechnung(finalized_invoice)
+        
+        # Total sollte im XML sein
+        assert str(finalized_invoice.total).replace('.', ',') in xml_content or str(finalized_invoice.total) in xml_content
+
+
+class TestZUGFeRDGenerator:
+    def test_generate_zugferd_pdf(self, finalized_invoice):
+        from apps.invoices.zugferd import generate_zugferd_pdf
+        
+        pdf_content = generate_zugferd_pdf(finalized_invoice)
+        
+        # Prüfe ob PDF generiert wurde
+        assert pdf_content is not None
+        assert len(pdf_content) > 0
+        
+        # Prüfe PDF Header (Magic Bytes)
+        assert pdf_content[:4] == b'%PDF'
+
+    def test_zugferd_pdf_size(self, finalized_invoice):
+        from apps.invoices.zugferd import generate_zugferd_pdf
+        
+        pdf_content = generate_zugferd_pdf(finalized_invoice)
+        
+        # PDF sollte mindestens 1KB sein
+        assert len(pdf_content) > 1000
+
+
+class TestDATEVExport:
+    def test_generate_datev_export(self, finalized_invoice):
+        from apps.invoices.datev import generate_datev_simple
+        
+        csv_content = generate_datev_simple([finalized_invoice])
+        
+        # Prüfe ob CSV generiert wurde
+        assert csv_content is not None
+        assert len(csv_content) > 0
+
+    def test_datev_contains_invoice_data(self, finalized_invoice):
+        from apps.invoices.datev import generate_datev_simple
+        
+        csv_content = generate_datev_simple([finalized_invoice])
+        
+        # Rechnungsnummer sollte enthalten sein
+        assert finalized_invoice.invoice_number in csv_content
