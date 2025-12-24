@@ -36,6 +36,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     { icon: 'receipt_long', label: 'Rechnungen', route: '/dashboard/invoices' },
     { icon: 'people', label: 'Kunden', route: '/dashboard/customers' },
     { icon: 'inventory_2', label: 'Produkte', route: '/dashboard/products' },
+    { icon: 'groups', label: 'Team', route: '/dashboard/team' },
     { icon: 'settings', label: 'Einstellungen', route: '/dashboard/settings' }
   ];
 

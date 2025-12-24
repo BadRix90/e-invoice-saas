@@ -63,6 +63,10 @@ export const routes: Routes = [
       {
         path: 'settings',
         loadComponent: () => import('./features/settings/settings').then(m => m.SettingsComponent)
+      },
+      {
+        path: 'team',
+        loadComponent: () => import('./features/team/team-list/team-list').then(m => m.TeamListComponent)
       }
     ]
   },

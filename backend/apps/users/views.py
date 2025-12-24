@@ -6,7 +6,7 @@ from .serializers import TenantSerializer, RegisterSerializer
 
 
 class RegisterView(generics.CreateAPIView):
-    """Registrierung neuer User mit Firmen-Code"""
+
     serializer_class = RegisterSerializer
     permission_classes = [permissions.AllowAny]
     
@@ -20,7 +20,8 @@ class RegisterView(generics.CreateAPIView):
                 'username': user.username,
                 'email': user.email,
                 'tenant': user.tenant.name,
-                'is_admin': user.is_staff
+                'role': user.role,
+                'is_admin': user.role in ['owner', 'admin']
             },
             'message': 'Registrierung erfolgreich! Bitte melden Sie sich an.'
         }, status=status.HTTP_201_CREATED)
@@ -83,3 +84,50 @@ class TenantViewSet(viewsets.ModelViewSet):
 
         serializer = TenantSerializer(tenant, context={'request': request})
         return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'])
+    def team(self, request):
+        """Alle Team-Mitglieder des Tenants abrufen"""
+        from .serializers import UserSerializer
+        
+        users = request.user.tenant.users.all()
+        serializer = UserSerializer(users, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['post'], url_path='team/add')
+    def add_team_member(self, request):
+        """Neuen Mitarbeiter hinzufügen (nur Owner)"""
+        from django.contrib.auth import get_user_model
+        
+        # Nur Owner darf Mitarbeiter hinzufügen
+        if request.user.role != 'owner':
+            return Response(
+                {'error': 'Nur der Owner darf Mitarbeiter hinzufügen.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        User = get_user_model()
+        email = request.data.get('email')
+        username = request.data.get('username')
+        password = request.data.get('password')
+        
+        if not all([email, username, password]):
+            return Response(
+                {'error': 'E-Mail, Username und Passwort erforderlich.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # User erstellen
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+            tenant=request.user.tenant,
+            role='user'
+        )
+        
+        from .serializers import UserSerializer
+        return Response(
+            UserSerializer(user).data,
+            status=status.HTTP_201_CREATED
+        )

@@ -116,6 +116,16 @@ export interface Reminder {
   notes: string;
 }
 
+export interface User {
+  id: number;
+  username: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  role: 'owner' | 'user';
+  date_joined: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -322,6 +332,15 @@ export class ApiService {
     return this.http.get(`${this.API_URL}/invoices/${id}/download_archive/`, {
       responseType: 'blob'
     });
+  }
+
+  // ============ TEAM MANAGEMENT ============
+  getTeam(): Observable<User[]> {
+    return this.http.get<User[]>(`${this.API_URL}/tenants/team/`);
+  }
+
+  addTeamMember(data: { username: string; email: string; password: string }): Observable<User> {
+    return this.http.post<User>(`${this.API_URL}/tenants/team/add/`, data);
   }
 }
 
