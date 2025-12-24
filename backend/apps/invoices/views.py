@@ -26,6 +26,9 @@ class InvoiceViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return Invoice.objects.filter(tenant=self.request.user.tenant).prefetch_related('items')
+    
+    def perform_create(self, serializer):
+        serializer.save(tenant=self.request.user.tenant, created_by=self.request.user)
 
     @action(detail=True, methods=['post'])
     def finalize(self, request, pk=None):

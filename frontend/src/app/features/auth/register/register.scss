@@ -8,7 +8,7 @@
 
 .login-card {
   width: 100%;
-  max-width: 400px;
+  max-width: 500px;
   padding: 2rem;
 }
 
@@ -25,11 +25,29 @@
   text-align: center;
 }
 
+.success-message {
+  background: #4caf50;
+  color: white;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
 mat-spinner {
   margin: 0 auto;
 }
 
-.register-link {
+.name-row {
+  display: flex;
+  gap: 1rem;
+
+  mat-form-field {
+    flex: 1;
+  }
+}
+
+.login-link {
   margin-top: 1rem;
   text-align: center;
   font-size: 0.9rem;
@@ -43,4 +61,14 @@ mat-spinner {
       text-decoration: underline;
     }
   }
+}
+
+::ng-deep .error-snackbar {
+  background: #f44336 !important;
+  color: white !important;
+}
+
+::ng-deep .success-snackbar {
+  background: #4caf50 !important;
+  color: white !important;
 }

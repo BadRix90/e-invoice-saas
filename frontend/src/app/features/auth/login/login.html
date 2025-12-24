@@ -6,7 +6,7 @@
 
     <mat-card-content>
       @if (errorMessage()) {
-        <div class="error-message">{{ errorMessage() }}</div>
+      <div class="error-message">{{ errorMessage() }}</div>
       }
 
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
@@ -18,26 +18,24 @@
 
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Passwort</mat-label>
-          <input matInput
-                 [type]="hidePassword() ? 'password' : 'text'"
-                 formControlName="password"
-                 autocomplete="current-password">
-          <button mat-icon-button matSuffix type="button"
-                  (click)="hidePassword.set(!hidePassword())">
+          <input matInput [type]="hidePassword() ? 'password' : 'text'" formControlName="password"
+            autocomplete="current-password">
+          <button mat-icon-button matSuffix type="button" (click)="hidePassword.set(!hidePassword())">
             <mat-icon>{{ hidePassword() ? 'visibility_off' : 'visibility' }}</mat-icon>
           </button>
         </mat-form-field>
 
-        <button mat-raised-button color="primary"
-                type="submit"
-                class="full-width"
-                [disabled]="loginForm.invalid || isLoading()">
+        <button mat-raised-button color="primary" type="submit" class="full-width"
+          [disabled]="loginForm.invalid || isLoading()">
           @if (isLoading()) {
-            <mat-spinner diameter="20"></mat-spinner>
+          <mat-spinner diameter="20"></mat-spinner>
           } @else {
-            Anmelden
+          Anmelden
           }
         </button>
+        <div class="register-link">
+          Noch kein Konto? <a routerLink="/auth/register">Jetzt registrieren</a>
+        </div>
       </form>
     </mat-card-content>
   </mat-card>

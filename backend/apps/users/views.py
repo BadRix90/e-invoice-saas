@@ -1,8 +1,41 @@
-from rest_framework import viewsets, permissions
-from rest_framework.decorators import action
+from rest_framework import viewsets, permissions, generics, status
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from .models import Tenant
-from .serializers import TenantSerializer
+from .serializers import TenantSerializer, RegisterSerializer
+
+
+class RegisterView(generics.CreateAPIView):
+    """Registrierung neuer User mit Firmen-Code"""
+    serializer_class = RegisterSerializer
+    permission_classes = [permissions.AllowAny]
+    
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        
+        return Response({
+            'user': {
+                'username': user.username,
+                'email': user.email,
+                'tenant': user.tenant.name,
+                'is_admin': user.is_staff
+            },
+            'message': 'Registrierung erfolgreich! Bitte melden Sie sich an.'
+        }, status=status.HTTP_201_CREATED)
+
+
+@api_view(['GET'])
+@permission_classes([permissions.AllowAny])
+def check_company_code(request):
+    """Prüft ob Firmen-Code bereits existiert"""
+    code = request.query_params.get('code')
+    if not code:
+        return Response({'error': 'Code parameter erforderlich'}, status=400)
+    
+    exists = Tenant.objects.filter(slug=code).exists()
+    return Response({'exists': exists})
 
 
 class TenantViewSet(viewsets.ModelViewSet):

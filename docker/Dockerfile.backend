@@ -5,6 +5,9 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
+# Log-Verzeichnis erstellen
+RUN mkdir -p /app/logs && chmod 777 /app/logs
+
 # System dependencies
 RUN apt-get update && apt-get install -y \
     libpq-dev \
@@ -13,10 +16,11 @@ RUN apt-get update && apt-get install -y \
 
 # Python dependencies
 COPY backend/requirements/base.txt requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt gunicorn psycopg2-binary
+RUN pip install --no-cache-dir -r requirements.txt gunicorn psycopg2-binary whitenoise
 
 # Application code
 COPY backend/ .
+
 
 # Collect static files
 RUN python manage.py collectstatic --noinput --clear || true

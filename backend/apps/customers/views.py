@@ -14,3 +14,6 @@ class CustomerViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return Customer.objects.filter(tenant=self.request.user.tenant)
+    
+    def perform_create(self, serializer):
+        serializer.save(tenant=self.request.user.tenant)

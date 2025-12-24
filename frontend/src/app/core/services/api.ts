@@ -120,7 +120,7 @@ export interface Reminder {
   providedIn: 'root'
 })
 export class ApiService {
-  private readonly API_URL = 'http://localhost:8000/api';
+  private readonly API_URL = 'https://factora.novadev-edge.io/api';
 
   constructor(private http: HttpClient) { }
 
