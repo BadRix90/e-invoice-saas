@@ -12,6 +12,8 @@ from io import BytesIO
 from cryptography.fernet import Fernet
 from django.conf import settings
 from django.utils import timezone
+from requests import Response
+
 
 
 def get_encryption_key():
@@ -170,3 +172,4 @@ def download_archive(invoice) -> bytes:
         return decrypt_data(archive.encrypted_data)
     except Exception:
         return None
+

@@ -26,13 +26,13 @@ class InvoiceViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return Invoice.objects.filter(tenant=self.request.user.tenant).prefetch_related('items')
-    
+
     def perform_create(self, serializer):
-        serializer.save(tenant=self.request.user.tenant, created_by=self.request.user)
+        serializer.save(tenant=self.request.user.tenant,
+                        created_by=self.request.user)
 
     @action(detail=True, methods=['post'])
     def finalize(self, request, pk=None):
-        """Rechnung finalisieren (Entwurf → Final)"""
         invoice = self.get_object()
         if invoice.status != 'draft':
             return Response(
@@ -45,10 +45,13 @@ class InvoiceViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # Summen berechnen
         invoice.calculate_totals()
         invoice.status = 'final'
         invoice.save()
+        try:
+            archive_result = archive_invoice(invoice)
+        except Exception as e:
+            pass
         return Response(InvoiceSerializer(invoice).data)
 
     @action(detail=True, methods=['post'])
@@ -266,7 +269,8 @@ class InvoiceViewSet(viewsets.ModelViewSet):
                 save=True
             )
 
-        response = HttpResponse(xml_content, content_type='application/xml; charset=utf-8')
+        response = HttpResponse(
+            xml_content, content_type='application/xml; charset=utf-8')
         response['Content-Disposition'] = f'attachment; filename="{invoice.invoice_number}.xml"'
         return response
 
@@ -411,12 +415,11 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             ],
         })
 
-
     @action(detail=True, methods=['post'])
     def archive(self, request, pk=None):
-        
+
         invoice = self.get_object()
-        
+
         try:
             result = archive_invoice(invoice)
             return Response({
@@ -439,7 +442,7 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     def verify(self, request, pk=None):
         invoice = self.get_object()
         result = verify_archive(invoice)
-        
+
         if result['valid']:
             return Response({
                 'success': True,
@@ -456,7 +459,7 @@ class InvoiceViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['get'])
     def download_archive(self, request, pk=None):
         invoice = self.get_object()
-        
+
         if not invoice.archived_at:
             return Response({
                 'success': False,
@@ -464,7 +467,7 @@ class InvoiceViewSet(viewsets.ModelViewSet):
             }, status=400)
 
         zip_data = download_archive(invoice)
-        
+
         if zip_data is None:
             return Response({
                 'success': False,
@@ -474,6 +477,41 @@ class InvoiceViewSet(viewsets.ModelViewSet):
         response = HttpResponse(zip_data, content_type='application/zip')
         response['Content-Disposition'] = f'attachment; filename="archiv_{invoice.invoice_number}.zip"'
         return response
+
+    @action(detail=True, methods=['post'])
+    def archive(self, request, pk=None):
+        """Rechnung manuell archivieren"""
+        invoice = self.get_object()
+
+        try:
+            result = archive_invoice(invoice)
+            return Response({
+                'success': True,
+                'message': 'Rechnung erfolgreich archiviert.',
+                'archive': result
+            })
+        except ValueError as e:
+            return Response({'error': str(e)}, status=400)
+
+    @action(detail=True, methods=['get'])
+    def verify_archive_endpoint(self, request, pk=None):
+        """Archiv-Integrität prüfen"""
+        invoice = self.get_object()
+        result = verify_archive(invoice)
+
+        if not result['valid']:
+            return Response({
+                'success': False,
+                'error': result.get('error'),
+                'details': result,
+            }, status=400)
+
+        return Response({
+            'success': True,
+            'message': 'Archiv ist gültig.',
+            'details': result
+        })
+
 
 class InvoiceItemViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
